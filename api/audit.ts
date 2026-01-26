@@ -1,10 +1,7 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { z } from 'zod';
 import { Resend } from 'resend';
 
-/**
- * Validation schema (frontend-এর সাথে match করে)
- */
+// Validation schema matching frontend
 const auditSchema = z.object({
   name: z.string().min(2).max(100),
   businessName: z.string().min(2).max(100),
@@ -17,9 +14,6 @@ const auditSchema = z.object({
   website: z.string().max(200).optional(),
 });
 
-/**
- * Email sender using Resend
- */
 async function sendAuditEmail(data: any): Promise<{ success: boolean; error?: string }> {
   const RESEND_API_KEY = process.env.RESEND_API_KEY;
   const TO_EMAIL = process.env.CONTACT_TO_EMAIL;
@@ -49,20 +43,17 @@ async function sendAuditEmail(data: any): Promise<{ success: boolean; error?: st
     });
 
     return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error?.message || 'Email send failed' };
+  } catch (e: any) {
+    return { success: false, error: e?.message || 'Email send failed' };
   }
 }
 
-/**
- * Vercel Serverless API Handler
- */
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
-  // 🔒 Body safe parsing (Vercel কখনো string পাঠায়)
+  // Vercel may provide req.body as string sometimes
   let body: any;
   try {
     body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
@@ -79,14 +70,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   }
 
-  try {
-    const emailResult = await sendAuditEmail(parsed.data);
-    if (!emailResult.success) {
-      return res.status(500).json({ success: false, error: emailResult.error });
-    }
-
-    return res.status(200).json({ success: true });
-  } catch {
-    return res.status(500).json({ success: false, error: 'Internal server error' });
+  const emailResult = await sendAuditEmail(parsed.data);
+  if (!emailResult.success) {
+    return res.status(500).json({ success: false, error: emailResult.error });
   }
+
+  return res.status(200).json({ success: true });
 }
