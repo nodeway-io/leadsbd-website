@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import Logo from './Logo';
@@ -11,49 +12,48 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ scrollToSection }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
   const location = useLocation();
   const { activeSection } = useScrollSpy();
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const isNavItemActive = (sectionId: string) => {
-    // On clinics page, Industries is always active
-    if (location.pathname === '/clinics-growth' && sectionId === 'industries') {
-      return true;
-    }
-    // On homepage, use scroll spy
-    if (location.pathname === '/') {
-      return activeSection === sectionId;
-    }
+    if (location.pathname === '/clinics-growth' && sectionId === 'industries') return true;
+    if (location.pathname === '/') return activeSection === sectionId;
     return false;
   };
 
-  const navItems = [
-    { label: 'System', sectionId: 'system' },
-    { label: 'Industries', sectionId: 'industries' },
-    { label: 'Proof', sectionId: 'proof' },
-    { label: 'FAQs', sectionId: 'faq' },
-  ];
+  const navItems = useMemo(
+    () => [
+      { label: 'System', sectionId: 'system' },
+      { label: 'Industries', sectionId: 'industries' },
+      { label: 'Proof', sectionId: 'proof' },
+      { label: 'FAQs', sectionId: 'faq' },
+    ],
+    []
+  );
 
   const handleNavClick = (sectionId: string) => {
-    if (scrollToSection) {
-      scrollToSection(sectionId);
-    }
+    if (scrollToSection) scrollToSection(sectionId);
     setIsMenuOpen(false);
   };
 
   const handleAuditClick = () => {
-    if (scrollToSection) {
-      scrollToSection('audit');
-    }
+    if (scrollToSection) scrollToSection('audit');
     setIsMenuOpen(false);
   };
 
-  return (
+  const headerUI = (
     <header className="fixed top-0 left-0 right-0 z-50 header-glass">
       <div className="container-width">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
-          <Link 
-            to="/" 
+          <Link
+            to="/"
             className="flex-shrink-0"
             onClick={() => window.scrollTo(0, 0)}
           >
@@ -95,10 +95,7 @@ export const Header: React.FC<HeaderProps> = ({ scrollToSection }) => {
 
           {/* CTA Button */}
           <div className="hidden md:block">
-            <Button 
-              onClick={handleAuditClick}
-              className="btn-primary"
-            >
+            <Button onClick={handleAuditClick} className="btn-primary">
               Get a Free Audit
             </Button>
           </div>
@@ -106,7 +103,9 @@ export const Header: React.FC<HeaderProps> = ({ scrollToSection }) => {
           {/* Mobile Menu Button */}
           <button
             className="md:hidden p-2 text-foreground"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            onClick={() => setIsMenuOpen((v) => !v)}
+            aria-label="Toggle menu"
+            aria-expanded={isMenuOpen}
           >
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -146,10 +145,8 @@ export const Header: React.FC<HeaderProps> = ({ scrollToSection }) => {
                   </Link>
                 ))
               )}
-              <Button
-                onClick={handleAuditClick}
-                className="btn-primary w-full mt-2"
-              >
+
+              <Button onClick={handleAuditClick} className="btn-primary w-full mt-2">
                 Get a Free Audit
               </Button>
             </nav>
@@ -158,6 +155,10 @@ export const Header: React.FC<HeaderProps> = ({ scrollToSection }) => {
       </div>
     </header>
   );
+
+  // ✅ Key fix: render header outside any transformed parent (e.g., PageTransition)
+  if (!mounted) return null;
+  return createPortal(headerUI, document.body);
 };
 
 export default Header;
