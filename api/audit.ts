@@ -1,79 +1,92 @@
-import { z } from 'zod';
-import { Resend } from 'resend';
+import { z } from "zod";
+import { Resend } from "resend";
 
-// Validation schema matching frontend
 const auditSchema = z.object({
   name: z.string().min(2).max(100),
   businessName: z.string().min(2).max(100),
   city: z.string().min(2).max(100),
   whatsapp: z.string().min(10).max(20),
-  runningAds: z.enum(['yes', 'no']),
+  runningAds: z.enum(["yes", "no"]),
   primaryService: z.string().min(1),
   sourcePage: z.string().min(1),
   email: z.string().email().max(100).optional(),
   website: z.string().max(200).optional(),
 });
 
-async function sendAuditEmail(data: any): Promise<{ success: boolean; error?: string }> {
+async function sendAuditEmail(payload: any) {
   const RESEND_API_KEY = process.env.RESEND_API_KEY;
   const TO_EMAIL = process.env.CONTACT_TO_EMAIL;
-  const FROM_EMAIL = process.env.FROM_EMAIL || 'Leads.bd <onboarding@resend.dev>';
+
+  // verified domain only
+  const FROM_EMAIL = "Leads.bd Audit <audit@mail.nodeway.link>";
 
   if (!RESEND_API_KEY || !TO_EMAIL) {
-    return { success: false, error: 'Missing RESEND_API_KEY or CONTACT_TO_EMAIL' };
+    console.error("[audit] Missing env:", {
+      hasResendKey: !!RESEND_API_KEY,
+      hasTo: !!TO_EMAIL,
+    });
+    return { success: false, error: "Missing RESEND_API_KEY or CONTACT_TO_EMAIL" };
   }
 
   const resend = new Resend(RESEND_API_KEY);
 
-  try {
-    await resend.emails.send({
-      from: FROM_EMAIL,
-      to: TO_EMAIL,
-      subject: `New Audit Request — ${data.businessName}`,
-      text:
-        `Name: ${data.name}\n` +
-        `Business: ${data.businessName}\n` +
-        `City: ${data.city}\n` +
-        `WhatsApp: ${data.whatsapp}\n` +
-        `Running Ads: ${data.runningAds}\n` +
-        `Primary Service: ${data.primaryService}\n` +
-        `Source Page: ${data.sourcePage}\n` +
-        `Email: ${data.email || '(not provided)'}\n` +
-        `Website: ${data.website || '(not provided)'}\n`,
-    });
+  const text =
+    `New audit request\n\n` +
+    `Name: ${payload.name}\n` +
+    `Business: ${payload.businessName}\n` +
+    `City: ${payload.city}\n` +
+    `WhatsApp: ${payload.whatsapp}\n` +
+    `Running Ads: ${payload.runningAds}\n` +
+    `Primary Service: ${payload.primaryService}\n` +
+    `Source Page: ${payload.sourcePage}\n` +
+    `Email: ${payload.email || "(not provided)"}\n` +
+    `Website: ${payload.website || "(not provided)"}\n`;
 
-    return { success: true };
-  } catch (e: any) {
-    return { success: false, error: e?.message || 'Email send failed' };
+  const { data, error } = await resend.emails.send({
+    from: FROM_EMAIL,
+    to: [TO_EMAIL],
+    subject: `Audit request received — ${payload.businessName}`,
+    text,
+  });
+
+  if (error) {
+    console.error("[audit] Resend error:", error);
+    return { success: false, error: error.message };
   }
+
+  console.log("[audit] Sent ok. Resend id:", data?.id);
+  return { success: true, id: data?.id };
 }
 
 export default async function handler(req: any, res: any) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ success: false, error: 'Method not allowed' });
+  if (req.method !== "POST") {
+    return res.status(405).json({ success: false, error: "Method not allowed" });
   }
 
-  // Vercel may provide req.body as string sometimes
-  let body: any;
-  try {
-    body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-  } catch {
-    return res.status(400).json({ success: false, error: 'Invalid JSON body' });
+  // body parse (safe)
+  let body: any = req.body;
+  if (typeof body === "string") {
+    try {
+      body = JSON.parse(body);
+    } catch {
+      return res.status(400).json({ success: false, error: "Invalid JSON body" });
+    }
   }
 
   const parsed = auditSchema.safeParse(body);
   if (!parsed.success) {
     return res.status(400).json({
       success: false,
-      error: 'Validation failed',
+      error: "Validation failed",
       details: parsed.error.flatten().fieldErrors,
     });
   }
 
   const emailResult = await sendAuditEmail(parsed.data);
+
   if (!emailResult.success) {
     return res.status(500).json({ success: false, error: emailResult.error });
   }
 
-  return res.status(200).json({ success: true });
+  return res.status(200).json({ success: true, id: emailResult.id });
 }
