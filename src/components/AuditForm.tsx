@@ -1,265 +1,332 @@
-const FROM_EMAIL = 'Leads.bd Audit <audit@mail.nodeway.link>';
-const TO_EMAIL = process.env.CONTACT_TO_EMAIL;
-const RESEND_API_KEY = process.env.RESEND_API_KEY;
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Link } from 'react-router-dom';
+import { CheckCircle, Loader2 } from 'lucide-react';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
+import GlassCard from './GlassCard';
+import { useToast } from '@/hooks/use-toast';
+import { getApiUrl } from '@/lib/api';
 
-if (!RESEND_API_KEY || !TO_EMAIL) {
-  console.error('Missing env vars', {
-    has_RESEND_API_KEY: !!RESEND_API_KEY,
-    has_CONTACT_TO_EMAIL: !!TO_EMAIL,
-  });
-  return res.status(500).json({ success: false, error: 'Missing RESEND_API_KEY or CONTACT_TO_EMAIL' });
-}
-
-// --------------------
-// Helpers (security + data quality)
-// --------------------
-const escapeHtml = (input: unknown) => {
-  const s = String(input ?? '');
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-};
-
-const isValidEmail = (email: string) => {
-  // simple, reliable enough for headers
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-};
-
-const normalizeUrl = (raw: unknown) => {
-  const s = String(raw ?? '').trim();
-  if (!s) return null;
-
-  const withProto = /^https?:\/\//i.test(s) ? s : `https://${s}`;
-
-  try {
-    const u = new URL(withProto);
-    if (u.protocol !== 'http:' && u.protocol !== 'https:') return null;
-    return u.toString();
-  } catch {
-    return null;
-  }
-};
-
-const normalizeWhatsapp = (raw: unknown) => {
-  // Returns digits only (no +) for wa.me
-  const s = String(raw ?? '').trim();
-  if (!s) return null;
-
-  let digits = s.replace(/[^\d]/g, ''); // digits only
-
-  // If BD local format like 01XXXXXXXXX (11 digits) => convert to 8801XXXXXXXXX
-  if (digits.length === 11 && digits.startsWith('01')) {
-    digits = `88${digits}`; // 88 + 01... => 8801...
-  }
-
-  // If starts with 00 (international) => drop leading 00
-  if (digits.startsWith('00')) {
-    digits = digits.slice(2);
-  }
-
-  // Basic sanity: wa.me typically needs countrycode + number, usually 10-15 digits
-  if (digits.length < 10 || digits.length > 15) return null;
-
-  return digits;
-};
-
-// --------------------
-// Subject line (same style)
-// --------------------
-const businessNameSafe = escapeHtml(payload.businessName);
-const citySafe = escapeHtml(payload.city);
-const emailSubject = `Audit Request: ${payload.businessName}`;
-
-// sanitize values for display
-const nameSafe = escapeHtml(payload.name);
-const whatsappRawSafe = escapeHtml(payload.whatsapp);
-const primaryServiceSafe = escapeHtml(payload.primaryService);
-const sourcePageSafe = escapeHtml(payload.sourcePage);
-
-// email + website (validated)
-const emailRaw = String(payload.email ?? '').trim();
-const customerEmail = emailRaw && isValidEmail(emailRaw) ? emailRaw : '';
-const customerEmailSafe = escapeHtml(customerEmail);
-
-const websiteNormalized = normalizeUrl(payload.website);
-const websiteTextSafe = escapeHtml(String(payload.website ?? '').trim());
-
-// whatsapp wa.me
-const waDigits = normalizeWhatsapp(payload.whatsapp);
-const waLink = waDigits ? `https://wa.me/${waDigits}` : '';
-
-// --------------------
-// Email HTML (layout preserved, only styling + links improved)
-// --------------------
-const emailHtml = `
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${escapeHtml(emailSubject)}</title>
-    <style>
-      body { margin:0; padding:0; background:#ffffff; color:#1a1a1a; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
-      .container { max-width:600px; margin:0 auto; padding:40px 20px; }
-
-      /* Brand Header */
-      .logo { font-size:22px; font-weight:700; color:#111827; letter-spacing:-0.5px; text-decoration:none; }
-      .dot { color:#00C896; }
-
-      .divider { border-top:1px solid #f0f0f0; margin:30px 0; }
-
-      /* Typography */
-      .h1 { font-size:18px; font-weight:600; margin:0 0 6px 0; letter-spacing:-0.2px; color:#111827; }
-      .sub { font-size:13px; color:#6b7280; margin:0; font-weight:400; }
-
-      /* Sections */
-      .section { font-size:11px; text-transform:uppercase; letter-spacing:1px; color:#9ca3af; font-weight:600; margin:32px 0 12px 0; }
-      .row { margin-bottom:16px; }
-      .label { font-size:12px; color:#6b7280; margin-bottom:4px; display:block; }
-      .value { font-size:15px; color:#111827; font-weight:500; line-height:1.5; }
-
-      /* Elements */
-      .muted { color:#a1a1a1; font-style:italic; }
-
-      /* Brand-soft links (NO BLUE) */
-      .link { color:#00C896; text-decoration:none; border-bottom:1px solid #c7f3e7; transition: border-color 0.2s; }
-      .link:hover { border-color:#00C896; }
-
-      /* Status Pills (Minimalist) */
-      .pillYes { background:#e6fffa; color:#00a37e; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:700; letter-spacing:0.5px; display:inline-block; }
-      .pillNo { background:#f4f4f5; color:#6b7280; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:700; letter-spacing:0.5px; display:inline-block; }
-
-      /* Corporate Footer */
-      .footer { margin-top:50px; padding-top:20px; border-top:1px solid #fafafa; }
-      .footer-text { font-size:11px; color:#9ca3af; line-height:1.6; }
-      .brand-connection { margin-top:8px; font-size:11px; color:#9ca3af; }
-      .brand-connection strong { color:#374151; font-weight:600; }
-    </style>
-  </head>
-  <body>
-    <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:transparent;">
-      New lead: ${businessNameSafe} (${citySafe}).
-    </div>
-
-    <div class="container">
-      <div style="margin-bottom:30px;">
-        <span class="logo">leads<span class="dot">.</span></span>
-      </div>
-
-      <h1 class="h1">New Audit Request</h1>
-      <p class="sub">Source: Landing Page Form</p>
-
-      <div class="divider"></div>
-
-      <div class="section">Contact Details</div>
-
-      <div class="row">
-        <span class="label">Name</span>
-        <div class="value">${nameSafe}</div>
-      </div>
-
-      <div class="row">
-        <span class="label">Email Address</span>
-        <div class="value">
-          ${
-            customerEmail
-              ? `<a href="mailto:${customerEmailSafe}" class="link">${customerEmailSafe}</a>`
-              : `<span class="muted">Not provided</span>`
-          }
-        </div>
-      </div>
-
-      <div class="row">
-        <span class="label">WhatsApp / Phone</span>
-        <div class="value">
-          ${
-            waLink
-              ? `<a href="${waLink}" class="link" target="_blank" rel="noopener noreferrer">${whatsappRawSafe}</a>`
-              : `${whatsappRawSafe || `<span class="muted">Not provided</span>`}`
-          }
-        </div>
-      </div>
-
-      <div class="section">Business Profile</div>
-
-      <div class="row">
-        <span class="label">Business Name</span>
-        <div class="value">${businessNameSafe}</div>
-      </div>
-
-      <div class="row">
-        <span class="label">Location</span>
-        <div class="value">${citySafe}</div>
-      </div>
-
-      <div class="row">
-        <span class="label">Website</span>
-        <div class="value">
-          ${
-            websiteNormalized
-              ? `<a href="${escapeHtml(websiteNormalized)}" class="link" target="_blank" rel="noopener noreferrer">${websiteTextSafe || escapeHtml(websiteNormalized)}</a>`
-              : `<span class="muted">Not provided</span>`
-          }
-        </div>
-      </div>
-
-      <div class="section">Audit Scope</div>
-
-      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
-        <tr>
-          <td width="45%" valign="top">
-            <span class="label">Running Ads?</span>
-            <div class="value" style="margin-top:4px;">
-              ${
-                payload.runningAds === 'yes'
-                  ? `<span class="pillYes">ACTIVE</span>`
-                  : `<span class="pillNo">INACTIVE</span>`
-              }
-            </div>
-          </td>
-          <td width="55%" valign="top">
-            <span class="label">Service Interest</span>
-            <div class="value" style="text-transform:capitalize;">${primaryServiceSafe}</div>
-          </td>
-        </tr>
-      </table>
-
-      <div class="footer">
-        <div class="footer-text">
-          Submitted via <strong>${sourcePageSafe}</strong> &nbsp;•&nbsp;
-          ${escapeHtml(new Date().toLocaleString('en-US', { timeZone: 'Asia/Dhaka' }))}
-        </div>
-
-        <div class="brand-connection">
-          <span style="display:inline-block; margin-top:8px; padding-top:8px; border-top:1px dashed #eee;">
-            <strong>Leads.bd</strong> is built on <strong>NodeWay</strong> infrastructure. <br/>
-            Designed for reliable delivery, secure handling, and fast response.
-          </span>
-        </div>
-      </div>
-    </div>
-  </body>
-</html>
-`;
-
-// --------------------
-// Send (Reply-To -> customer email) ✅
-// --------------------
-const { data, error } = await resend.emails.send({
-  from: FROM_EMAIL,
-  to: [TO_EMAIL],
-  subject: emailSubject,
-  reply_to: customerEmail || undefined,
-  html: emailHtml,
+export const auditFormSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters').max(100),
+  businessName: z.string().min(2, 'Business name must be at least 2 characters').max(100),
+  city: z.string().min(2, 'City must be at least 2 characters').max(100),
+  whatsapp: z.string().min(10, 'Please enter a valid WhatsApp number').max(20),
+  runningAds: z.enum(['yes', 'no'], { required_error: 'Please select an option' }),
+  primaryService: z.string().min(1, 'Please select a service'),
+  email: z.string().email('Please enter a valid email').max(100).optional().or(z.literal('')),
+  website: z.string().max(200).optional(),
 });
 
-if (error) {
-  console.error('Resend API Error:', error);
-  return res.status(500).json({ success: false, error: error.message });
+export type AuditFormData = z.infer<typeof auditFormSchema>;
+
+interface AuditFormProps {
+  sourcePage: 'homepage' | 'clinics';
 }
 
-console.log('Email sent:', data?.id);
-return res.status(200).json({ success: true, id: data?.id });
+export const AuditForm: React.FC<AuditFormProps> = ({ sourcePage }) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const { toast } = useToast();
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+    reset,
+  } = useForm<AuditFormData>({
+    resolver: zodResolver(auditFormSchema),
+  });
+
+  const serviceOptions = sourcePage === 'clinics' 
+    ? [
+        { value: 'dental', label: 'Dental Clinic' },
+        { value: 'cosmetic', label: 'Cosmetic / Aesthetic Clinic' },
+        { value: 'hair', label: 'Hair Transplant' },
+        { value: 'ivf', label: 'Fertility / IVF' },
+        { value: 'diagnostic', label: 'Diagnostic Center' },
+        { value: 'other-clinic', label: 'Other Clinic' },
+      ]
+    : [
+        { value: 'clinic', label: 'Clinic / Medical' },
+        { value: 'immigration', label: 'Immigration Services' },
+        { value: 'professional', label: 'Professional Services' },
+        { value: 'local-service', label: 'High-Ticket Local Service' },
+        { value: 'other', label: 'Other' },
+      ];
+
+  const onSubmit = async (data: AuditFormData) => {
+    setIsSubmitting(true);
+    
+    try {
+      // Build payload, include optional fields only if provided
+      const payload: Record<string, string> = {
+        name: data.name,
+        businessName: data.businessName,
+        city: data.city,
+        whatsapp: data.whatsapp,
+        runningAds: data.runningAds,
+        primaryService: data.primaryService,
+        sourcePage,
+      };
+      if (data.email?.trim()) payload.email = data.email.trim();
+      if (data.website?.trim()) payload.website = data.website.trim();
+
+      const response = await fetch(getApiUrl('/api/audit'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      let result;
+      try {
+        result = await response.json();
+      } catch {
+        console.error('Audit form: Failed to parse response', response.status);
+        throw new Error('Server unavailable');
+      }
+
+      if (!response.ok || !result.success) {
+        console.error('Audit form error:', response.status, result.error);
+        throw new Error(response.status === 429 ? 'rate_limit' : (result.error || 'Submission failed'));
+      }
+      
+      // Fire Meta Pixel Lead event on successful submission
+      if (typeof window !== 'undefined' && typeof window.fbq === 'function') {
+        window.fbq('track', 'Lead');
+      }
+
+      setIsSuccess(true);
+      toast({
+        title: "Audit Request Submitted!",
+        description: "We'll review your information and get back to you within 24-48 hours.",
+      });
+      reset();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '';
+      const isRateLimit = message === 'rate_limit';
+      toast({
+        title: isRateLimit ? "Too Many Requests" : "Submission Failed",
+        description: isRateLimit 
+          ? "Please wait a few minutes before trying again."
+          : "Please try again or contact us directly.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (isSuccess) {
+    return (
+      <GlassCard variant="strong" className="p-8 md:p-10 text-center">
+        <div className="flex justify-center mb-6">
+          <div className="w-16 h-16 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center">
+            <CheckCircle className="w-8 h-8 text-primary" />
+          </div>
+        </div>
+        <h3 className="text-xl md:text-2xl font-bold text-foreground mb-3">
+          Audit Request Received!
+        </h3>
+        <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+          We'll analyze your current acquisition setup and get back to you within 24-48 hours with actionable insights.
+        </p>
+        <Button 
+          onClick={() => setIsSuccess(false)} 
+          variant="outline"
+          className="btn-secondary"
+        >
+          Submit Another Request
+        </Button>
+      </GlassCard>
+    );
+  }
+
+  return (
+    <GlassCard variant="strong" className="p-6 md:p-8">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {/* Name */}
+          <div className="space-y-2">
+            <Label htmlFor="name" className="text-sm font-medium text-foreground">
+              Your Name
+            </Label>
+            <Input
+              id="name"
+              {...register('name')}
+              placeholder="John Doe"
+              className="bg-white/5 border-white/10 focus:border-primary/50 text-foreground placeholder:text-muted-foreground"
+            />
+            {errors.name && (
+              <p className="text-xs text-destructive">{errors.name.message}</p>
+            )}
+          </div>
+
+          {/* Business Name */}
+          <div className="space-y-2">
+            <Label htmlFor="businessName" className="text-sm font-medium text-foreground">
+              Business / Clinic Name
+            </Label>
+            <Input
+              id="businessName"
+              {...register('businessName')}
+              placeholder="ABC Clinic"
+              className="bg-white/5 border-white/10 focus:border-primary/50 text-foreground placeholder:text-muted-foreground"
+            />
+            {errors.businessName && (
+              <p className="text-xs text-destructive">{errors.businessName.message}</p>
+            )}
+          </div>
+
+          {/* City */}
+          <div className="space-y-2">
+            <Label htmlFor="city" className="text-sm font-medium text-foreground">
+              City
+            </Label>
+            <Input
+              id="city"
+              {...register('city')}
+              placeholder="Dhaka"
+              className="bg-white/5 border-white/10 focus:border-primary/50 text-foreground placeholder:text-muted-foreground"
+            />
+            {errors.city && (
+              <p className="text-xs text-destructive">{errors.city.message}</p>
+            )}
+          </div>
+
+          {/* WhatsApp */}
+          <div className="space-y-2">
+            <Label htmlFor="whatsapp" className="text-sm font-medium text-foreground">
+              WhatsApp Number
+            </Label>
+            <Input
+              id="whatsapp"
+              {...register('whatsapp')}
+              placeholder="+880 1XXX XXXXXX"
+              className="bg-white/5 border-white/10 focus:border-primary/50 text-foreground placeholder:text-muted-foreground"
+            />
+            {errors.whatsapp && (
+              <p className="text-xs text-destructive">{errors.whatsapp.message}</p>
+            )}
+          </div>
+
+          {/* Running Ads */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-foreground">
+              Currently Running Ads?
+            </Label>
+            <Select onValueChange={(value) => setValue('runningAds', value as 'yes' | 'no')}>
+              <SelectTrigger className="bg-white/5 border-white/10 focus:border-primary/50 text-foreground">
+                <SelectValue placeholder="Select..." />
+              </SelectTrigger>
+              <SelectContent className="bg-card border-white/10">
+                <SelectItem value="yes">Yes, running ads</SelectItem>
+                <SelectItem value="no">No, not yet</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.runningAds && (
+              <p className="text-xs text-destructive">{errors.runningAds.message}</p>
+            )}
+          </div>
+
+          {/* Primary Service */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-foreground">
+              Primary Service
+            </Label>
+            <Select onValueChange={(value) => setValue('primaryService', value)}>
+              <SelectTrigger className="bg-white/5 border-white/10 focus:border-primary/50 text-foreground">
+                <SelectValue placeholder="Select service..." />
+              </SelectTrigger>
+              <SelectContent className="bg-card border-white/10">
+                {serviceOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.primaryService && (
+              <p className="text-xs text-destructive">{errors.primaryService.message}</p>
+            )}
+          </div>
+
+          {/* Work Email (optional) */}
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-sm font-medium text-foreground">
+              Work Email <span className="text-muted-foreground font-normal">(optional)</span>
+            </Label>
+            <Input
+              id="email"
+              type="email"
+              {...register('email')}
+              placeholder="you@company.com"
+              className="bg-white/5 border-white/10 focus:border-primary/50 text-foreground placeholder:text-muted-foreground"
+            />
+            {errors.email && (
+              <p className="text-xs text-destructive">{errors.email.message}</p>
+            )}
+          </div>
+
+          {/* Website URL (optional) */}
+          <div className="space-y-2">
+            <Label htmlFor="website" className="text-sm font-medium text-foreground">
+              Website / Page URL <span className="text-muted-foreground font-normal">(optional)</span>
+            </Label>
+            <Input
+              id="website"
+              {...register('website')}
+              placeholder="https://yoursite.com"
+              className="bg-white/5 border-white/10 focus:border-primary/50 text-foreground placeholder:text-muted-foreground"
+            />
+            {errors.website && (
+              <p className="text-xs text-destructive">{errors.website.message}</p>
+            )}
+          </div>
+        </div>
+
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full btn-hero mt-6"
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              Submitting...
+            </>
+          ) : (
+            'Request Audit'
+          )}
+        </Button>
+
+        <p className="text-xs text-muted-foreground text-center pt-2">
+          By submitting this form, you agree to our{' '}
+          <Link 
+            to="/privacy" 
+            className="text-primary hover:underline"
+            onClick={() => window.scrollTo(0, 0)}
+          >
+            Privacy Policy
+          </Link>
+          .
+        </p>
+      </form>
+    </GlassCard>
+  );
+};
+
+export default AuditForm;
