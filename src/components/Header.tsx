@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import Logo from './Logo';
 import { Button } from './ui/button';
@@ -15,6 +15,7 @@ export const Header: React.FC<HeaderProps> = ({ scrollToSection }) => {
   const [mounted, setMounted] = useState(false);
 
   const location = useLocation();
+  const navigate = useNavigate();
   const { activeSection } = useScrollSpy();
 
   useEffect(() => {
@@ -22,8 +23,12 @@ export const Header: React.FC<HeaderProps> = ({ scrollToSection }) => {
   }, []);
 
   const isNavItemActive = (sectionId: string) => {
+    // On clinics page, Industries is always active
     if (location.pathname === '/clinics-growth' && sectionId === 'industries') return true;
+
+    // On homepage, use scroll spy
     if (location.pathname === '/') return activeSection === sectionId;
+
     return false;
   };
 
@@ -37,13 +42,24 @@ export const Header: React.FC<HeaderProps> = ({ scrollToSection }) => {
     []
   );
 
+  const goToSection = (sectionId: string) => {
+    // If we're already on homepage, scroll locally
+    if (location.pathname === '/' && scrollToSection) {
+      scrollToSection(sectionId);
+      return;
+    }
+
+    // Otherwise go home and ask HomePage to scroll after render
+    navigate('/', { state: { scrollTo: sectionId } });
+  };
+
   const handleNavClick = (sectionId: string) => {
-    if (scrollToSection) scrollToSection(sectionId);
+    goToSection(sectionId);
     setIsMenuOpen(false);
   };
 
   const handleAuditClick = () => {
-    if (scrollToSection) scrollToSection('audit');
+    goToSection('audit');
     setIsMenuOpen(false);
   };
 
@@ -62,35 +78,19 @@ export const Header: React.FC<HeaderProps> = ({ scrollToSection }) => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
-            {location.pathname === '/' ? (
-              navItems.map((item) => (
-                <button
-                  key={item.label}
-                  onClick={() => handleNavClick(item.sectionId)}
-                  className={`nav-link text-sm font-medium transition-colors ${
-                    isNavItemActive(item.sectionId)
-                      ? 'text-primary active'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))
-            ) : (
-              navItems.map((item) => (
-                <Link
-                  key={item.label}
-                  to={`/#${item.sectionId}`}
-                  className={`nav-link text-sm font-medium transition-colors ${
-                    isNavItemActive(item.sectionId)
-                      ? 'text-primary active'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              ))
-            )}
+            {navItems.map((item) => (
+              <button
+                key={item.label}
+                onClick={() => handleNavClick(item.sectionId)}
+                className={`nav-link text-sm font-medium transition-colors ${
+                  isNavItemActive(item.sectionId)
+                    ? 'text-primary active'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
           </nav>
 
           {/* CTA Button */}
@@ -115,36 +115,19 @@ export const Header: React.FC<HeaderProps> = ({ scrollToSection }) => {
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t border-white/10">
             <nav className="flex flex-col gap-4">
-              {location.pathname === '/' ? (
-                navItems.map((item) => (
-                  <button
-                    key={item.label}
-                    onClick={() => handleNavClick(item.sectionId)}
-                    className={`text-left text-sm font-medium transition-colors py-2 ${
-                      isNavItemActive(item.sectionId)
-                        ? 'text-primary'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                ))
-              ) : (
-                navItems.map((item) => (
-                  <Link
-                    key={item.label}
-                    to={`/#${item.sectionId}`}
-                    className={`text-left text-sm font-medium transition-colors py-2 ${
-                      isNavItemActive(item.sectionId)
-                        ? 'text-primary'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {item.label}
-                  </Link>
-                ))
-              )}
+              {navItems.map((item) => (
+                <button
+                  key={item.label}
+                  onClick={() => handleNavClick(item.sectionId)}
+                  className={`text-left text-sm font-medium transition-colors py-2 ${
+                    isNavItemActive(item.sectionId)
+                      ? 'text-primary'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
 
               <Button onClick={handleAuditClick} className="btn-primary w-full mt-2">
                 Get a Free Audit
@@ -156,7 +139,7 @@ export const Header: React.FC<HeaderProps> = ({ scrollToSection }) => {
     </header>
   );
 
-  // ✅ Key fix: render header outside any transformed parent (e.g., PageTransition)
+  // Keep fixed header stable even if parent uses transforms
   if (!mounted) return null;
   return createPortal(headerUI, document.body);
 };
