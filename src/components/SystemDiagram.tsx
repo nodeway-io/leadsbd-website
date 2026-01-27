@@ -38,9 +38,16 @@ export const SystemDiagram: React.FC<SystemDiagramProps> = ({ steps, className =
 
           <GlassCard variant="hover" className="p-5 md:p-6 h-full">
             <div className="flex items-start gap-4">
-              {/* Step Number */}
-              <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center">
-                <span className="text-primary font-bold text-lg">{step.number}</span>
+              {/* Step Indicator (Icon or Number) */}
+              {/* FIXED: Now renders Icon if present, otherwise Number */}
+              <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center text-primary">
+                {step.icon ? (
+                  <div className="h-6 w-6">
+                    {step.icon}
+                  </div>
+                ) : (
+                  <span className="font-bold text-lg">{step.number}</span>
+                )}
               </div>
               
               <div className="flex-1 min-w-0">

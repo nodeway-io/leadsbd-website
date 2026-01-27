@@ -1,8 +1,12 @@
 import React, { useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import { Link, useLocation } from 'react-router-dom';
-import { ArrowRight, Zap, BarChart3, Target, Clock, CheckCircle, AlertTriangle, TrendingUp } from 'lucide-react';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
+// আইকনগুলো ইমপোর্ট করা হলো
+import { 
+  ArrowRight, Zap, BarChart3, Target, Clock, CheckCircle, AlertTriangle, 
+  Search, UserCheck, Calendar, GitMerge 
+} from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import BackToTop from '@/components/BackToTop';
@@ -17,39 +21,30 @@ import { Button } from '@/components/ui/button';
 import { useScrollSpyObserver } from '@/contexts/ScrollSpyContext';
 
 const HomePage: React.FC = () => {
-  // Set up scroll spy observer for nav sections
   useScrollSpyObserver(['system', 'industries', 'proof', 'faq', 'audit']);
 
   const location = useLocation() as any;
+  const navigate = useNavigate();
 
-  // Ensure absolute hash links like "/#system" reliably scroll after React renders.
-  // (Browsers often try to scroll before SPA content mounts, leaving users at the top.)
+  // Scroll logic for global navigation
   useEffect(() => {
     const scrollToHash = () => {
-      const hash = window.location.hash;
-      if (!hash) return;
+      const stateTarget = location?.state?.scrollTo;
+      const hashTarget = window.location.hash.replace('#', '');
+      const targetId = stateTarget || hashTarget;
 
-      const id = hash.replace('#', '');
+      if (!targetId) return;
 
-      let tries = 0;
-      const tryScroll = () => {
-        const el = document.getElementById(id);
-        if (el) {
+      const el = document.getElementById(targetId);
+      if (el) {
+        setTimeout(() => {
           el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          return;
-        }
-        tries += 1;
-        if (tries < 20) window.setTimeout(tryScroll, 50);
-      };
-
-      // Defer to ensure layout is ready.
-      window.setTimeout(tryScroll, 0);
+        }, 100);
+      }
     };
 
     scrollToHash();
-    window.addEventListener('hashchange', scrollToHash);
-    return () => window.removeEventListener('hashchange', scrollToHash);
-  }, []);
+  }, [location]);
 
   const sectionRefs = {
     system: useRef<HTMLElement>(null),
@@ -66,32 +61,38 @@ const HomePage: React.FC = () => {
     }
   };
 
-  // Support cross-page navigation scroll:
-  // navigate('/', { state: { scrollTo: 'audit' } }) from Header/other pages.
-  useEffect(() => {
-    const target = location?.state?.scrollTo as string | undefined;
-    if (!target) return;
-
-    let tries = 0;
-    const tryScroll = () => {
-      const el = document.getElementById(target);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        return;
-      }
-      tries += 1;
-      if (tries < 20) window.setTimeout(tryScroll, 50);
-    };
-
-    window.setTimeout(tryScroll, 0);
-  }, [location]);
-
+  // Top 5 Steps (1-5) with Icons
   const systemSteps = [
-    { number: 1, title: 'Demand Capture', description: 'Clinic ads + landing pages + offer framing' },
-    { number: 2, title: 'Signal & Measurement', description: 'Server-side tracking, conversion validation' },
-    { number: 3, title: 'Lead Qualification', description: 'Intent filters + patient routing rules' },
-    { number: 4, title: 'Automation Layer', description: 'Instant follow-up, reminders, booking triggers' },
-    { number: 5, title: 'Patient Booking', description: 'Calendar integration + CRM handoff' },
+    { 
+      number: 1, 
+      title: 'Demand Capture', 
+      description: 'Clinic ads + landing pages + offer framing',
+      icon: <Search className="w-full h-full" /> 
+    },
+    { 
+      number: 2, 
+      title: 'Signal & Measurement', 
+      description: 'Server-side tracking, conversion validation',
+      icon: <BarChart3 className="w-full h-full" /> 
+    },
+    { 
+      number: 3, 
+      title: 'Lead Qualification', 
+      description: 'Intent filters + patient routing rules',
+      icon: <UserCheck className="w-full h-full" /> 
+    },
+    { 
+      number: 4, 
+      title: 'Automation Layer', 
+      description: 'Instant follow-up, reminders, booking triggers',
+      icon: <Zap className="w-full h-full" /> 
+    },
+    { 
+      number: 5, 
+      title: 'Patient Booking', 
+      description: 'Calendar integration + CRM handoff',
+      icon: <Calendar className="w-full h-full" /> 
+    },
   ];
 
   const faqItems = [
@@ -125,7 +126,6 @@ const HomePage: React.FC = () => {
     },
   ];
 
-  // Generate FAQPage JSON-LD from faqItems
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -143,9 +143,9 @@ const HomePage: React.FC = () => {
     <PageTransition>
       <Helmet>
         <title>Customer Acquisition Systems for Clinics & Services | Leads.bd</title>
-        <meta
-          name="description"
-          content="Customer acquisition infrastructure for clinics and service businesses. Tracking, automation, and patient booking systems that convert ad spend."
+        <meta 
+          name="description" 
+          content="Customer acquisition infrastructure for clinics and service businesses. Tracking, automation, and patient booking systems that convert ad spend." 
         />
         <meta name="robots" content="index, follow" />
         <link rel="canonical" href="https://leads.bd/" />
@@ -159,13 +159,11 @@ const HomePage: React.FC = () => {
       <main className="min-h-screen bg-infrastructure">
         {/* Hero Section */}
         <section className="relative pt-32 md:pt-40 pb-20 md:pb-28 overflow-hidden">
-          {/* Background Effects */}
           <div className="absolute inset-0 bg-grid-pattern opacity-50" />
           <div className="absolute inset-0 signal-lines" />
-
+          
           <div className="container-width relative z-10">
             <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-              {/* Left Column - Copy */}
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -181,14 +179,14 @@ const HomePage: React.FC = () => {
                   Built for businesses where one customer is worth serious money.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <Button
+                  <Button 
                     onClick={() => scrollToSection('audit')}
                     className="btn-hero"
                   >
                     Get a Free Acquisition Audit
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
-                  <Button
+                  <Button 
                     onClick={() => scrollToSection('system')}
                     variant="outline"
                     className="btn-secondary"
@@ -198,7 +196,6 @@ const HomePage: React.FC = () => {
                 </div>
               </motion.div>
 
-              {/* Right Column - Infrastructure Snapshot */}
               <motion.div
                 initial={{ opacity: 0, x: 30 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -237,9 +234,149 @@ const HomePage: React.FC = () => {
                       </div>
                     </div>
                   </div>
+                  <div className="mt-6 pt-6 border-t border-white/10">
+                    <div className="flex flex-wrap gap-3">
+                      <span className="text-xs text-muted-foreground bg-white/5 px-3 py-1.5 rounded-full">
+                        ✓ Faster follow-up
+                      </span>
+                      <span className="text-xs text-muted-foreground bg-white/5 px-3 py-1.5 rounded-full">
+                        ✓ Cleaner attribution
+                      </span>
+                      <span className="text-xs text-muted-foreground bg-white/5 px-3 py-1.5 rounded-full">
+                        ✓ More bookings
+                      </span>
+                    </div>
+                  </div>
                 </GlassCard>
               </motion.div>
             </div>
+          </div>
+        </section>
+
+        {/* Proof Bar */}
+        <motion.section 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="pt-16 pb-16 border-y border-white/5 bg-white/[0.02]"
+        >
+          <div className="container-width">
+            <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8">
+              <span className="text-sm text-muted-foreground">Built with enterprise-grade tooling:</span>
+              <motion.div 
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={{
+                  visible: { transition: { staggerChildren: 0.05 } }
+                }}
+                className="flex flex-wrap justify-center gap-3"
+              >
+                {['GA4', 'GTM', 'Meta CAPI', 'CRM', 'Automation'].map((tool) => (
+                  <motion.span 
+                    key={tool}
+                    variants={{
+                      hidden: { opacity: 0, scale: 0.8 },
+                      visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } }
+                    }}
+                    className="text-xs font-medium text-foreground bg-white/5 border border-white/10 px-4 py-2 rounded-lg"
+                  >
+                    {tool}
+                  </motion.span>
+                ))}
+              </motion.div>
+            </div>
+          </div>
+        </motion.section>
+
+        {/* MISSING SECTION 1: Leak Map */}
+        <section className="pt-20 pb-20 md:mt-[5vh]">
+          <div className="container-width">
+            <SectionHeading
+              title="Most Businesses Don't Lose Customers. They Leak Them."
+              subtitle="When acquisition is manual and tracking is unreliable, money leaks silently—even if ads 'seem' to be working."
+            />
+
+            <motion.div
+              initial={{ opacity: 0, y: 40, scale: 0.98 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.7, ease: [0.25, 0.4, 0.25, 1] }}
+              viewport={{ once: true, amount: 0.2 }}
+              className="mt-12 md:mt-16"
+            >
+              <GlassCard className="p-6 md:p-10">
+                {/* Pipeline Flow */}
+                <motion.div 
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                  variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
+                  className="flex flex-wrap justify-center items-center gap-2 md:gap-4 mb-10"
+                >
+                  {['Traffic', 'Lead', 'Follow-up', 'Booking', 'Revenue'].map((step, index) => (
+                    <React.Fragment key={step}>
+                      <motion.span 
+                        variants={{
+                          hidden: { opacity: 0, y: 20 },
+                          visible: { opacity: 1, y: 0, transition: { duration: 0.4 } }
+                        }}
+                        className="text-sm md:text-base font-medium text-foreground px-3 md:px-4 py-2 bg-white/5 rounded-lg border border-white/10"
+                      >
+                        {step}
+                      </motion.span>
+                      {index < 4 && (
+                        <motion.span
+                          variants={{
+                            hidden: { opacity: 0, scale: 0 },
+                            visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } }
+                          }}
+                        >
+                          <ArrowRight className="h-4 w-4 text-muted-foreground hidden sm:block" />
+                        </motion.span>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </motion.div>
+
+                {/* Leak Points */}
+                <motion.h4 
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.3 }}
+                  className="text-sm font-semibold text-destructive uppercase tracking-wider mb-4 text-center"
+                >
+                  Common Leak Points
+                </motion.h4>
+                <motion.div 
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                  variants={{ visible: { transition: { staggerChildren: 0.1, delayChildren: 0.4 } } }}
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+                >
+                  {[
+                    'Untracked conversions',
+                    'Slow follow-up',
+                    'No qualification',
+                    'No booking path',
+                  ].map((leak) => (
+                    <motion.div 
+                      key={leak}
+                      variants={{
+                        hidden: { opacity: 0, x: -20 },
+                        visible: { opacity: 1, x: 0, transition: { duration: 0.4 } }
+                      }}
+                      className="flex items-center gap-3 p-4 rounded-xl bg-destructive/5 border border-destructive/20"
+                    >
+                      <AlertTriangle className="h-5 w-5 text-destructive flex-shrink-0" />
+                      <span className="text-sm text-foreground">{leak}</span>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              </GlassCard>
+            </motion.div>
           </div>
         </section>
 
@@ -247,31 +384,188 @@ const HomePage: React.FC = () => {
         <section ref={sectionRefs.system} id="system" className="pt-24 pb-24 bg-white/[0.01]">
           <div className="container-width">
             <SectionHeading
-              title="A Customer Acquisition System — Not Ads."
-              subtitle="We install the infrastructure that turns clicks into booked customers."
+              tag="The System"
+              title="A Complete Acquisition System. Not Campaigns."
+              subtitle="Not random tactics. A measurable infrastructure that runs every day."
             />
 
-            <div className="mt-12">
-              <SystemDiagram steps={systemSteps} />
-            </div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
+            {/* Top Diagram: 1-5 Steps */}
+            <motion.div 
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
+              viewport={{ once: true, amount: 0.1 }}
+              transition={{ duration: 0.6, delay: 0.2, ease: [0.25, 0.4, 0.25, 1] }}
+              className="mt-12 md:mt-16"
+            >
+              <SystemDiagram steps={systemSteps} />
+            </motion.div>
+
+            {/* FIXED: Bottom 3 Cards with Icons */}
+            <motion.div 
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+              variants={{ visible: { transition: { staggerChildren: 0.12 } } }}
               className="grid md:grid-cols-3 gap-6 mt-12"
             >
               {[
-                { title: 'Signal Quality', description: 'Correct events, correct attribution, clean data.' },
-                { title: 'Conversion Flow', description: 'Landing page → follow-up → booked appointment.' },
-                { title: 'Automation', description: 'Instant response, reminders, and routing.' },
+                { 
+                  title: 'Signal Quality', 
+                  description: 'Correct events, correct attribution, clean data.', 
+                  icon: BarChart3 
+                },
+                { 
+                  title: 'Conversion Flow', 
+                  description: 'Landing page → follow-up → booked appointment.', 
+                  icon: GitMerge // Used GitMerge to represent flow/path
+                },
+                { 
+                  title: 'Automation', 
+                  description: 'Instant response, reminders, and routing.', 
+                  icon: Zap 
+                },
               ].map((item) => (
-                <GlassCard key={item.title} variant="hover" className="p-6 md:p-8">
-                  <h4 className="text-lg font-semibold text-foreground mb-3">{item.title}</h4>
-                  <p className="text-muted-foreground">{item.description}</p>
-                </GlassCard>
+                <motion.div
+                  key={item.title}
+                  variants={{
+                    hidden: { opacity: 0, y: 30, scale: 0.95 },
+                    visible: { 
+                      opacity: 1, 
+                      y: 0, 
+                      scale: 1,
+                      transition: { duration: 0.5, ease: [0.25, 0.4, 0.25, 1] }
+                    }
+                  }}
+                >
+                  <GlassCard variant="hover" className="p-6 md:p-8 h-full">
+                    {/* The Icon Wrapper - This was missing in your live site */}
+                    <motion.div 
+                      whileHover={{ scale: 1.1, rotate: 5 }}
+                      transition={{ type: "spring", stiffness: 400 }}
+                      className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 mb-4"
+                    >
+                      <item.icon className="h-6 w-6 text-primary" />
+                    </motion.div>
+                    
+                    <h4 className="font-semibold text-foreground mb-2 text-lg">{item.title}</h4>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
+                  </GlassCard>
+                </motion.div>
               ))}
+            </motion.div>
+          </div>
+        </section>
+
+        {/* MISSING SECTION 2: Process Steps (01, 02, 03) */}
+        <section className="pt-20 pb-20">
+          <div className="container-width">
+            <SectionHeading
+              title="A clear process. No chaos."
+            />
+
+            <motion.div 
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+              variants={{ visible: { transition: { staggerChildren: 0.15 } } }}
+              className="grid md:grid-cols-3 gap-6 mt-12"
+            >
+              {[
+                { step: '01', title: 'Audit', description: 'Find leak points + quick wins' },
+                { step: '02', title: 'Install', description: 'Deploy tracking, funnel, automation' },
+                { step: '03', title: 'Optimize', description: 'Weekly improvements, measurable growth' },
+              ].map((item) => (
+                <motion.div
+                  key={item.step}
+                  variants={{
+                    hidden: { opacity: 0, y: 40, rotateX: 15 },
+                    visible: { 
+                      opacity: 1, 
+                      y: 0, 
+                      rotateX: 0,
+                      transition: { duration: 0.6, ease: [0.25, 0.4, 0.25, 1] }
+                    }
+                  }}
+                >
+                  <GlassCard variant="hover" className="p-6 md:p-8">
+                    <motion.span 
+                      initial={{ opacity: 0, scale: 0.5 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
+                      className="text-4xl font-bold text-primary/30 mb-4 block"
+                    >
+                      {item.step}
+                    </motion.span>
+                    <h4 className="text-xl font-semibold text-foreground mb-2">{item.title}</h4>
+                    <p className="text-muted-foreground">{item.description}</p>
+                  </GlassCard>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </section>
+
+        {/* MISSING SECTION 3: Engagement Models */}
+        <section className="pt-20 pb-20 bg-white/[0.01]">
+          <div className="container-width">
+            <SectionHeading
+              title="Simple Engagement. Built Around Your Scale."
+              subtitle="We don't sell templates. We install infrastructure."
+            />
+
+            <motion.div 
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+              variants={{ visible: { transition: { staggerChildren: 0.12 } } }}
+              className="grid md:grid-cols-3 gap-6 mt-12"
+            >
+              {[
+                { title: 'Starter Infrastructure', description: 'Core funnel + booking + basic automation' },
+                { title: 'Growth Infrastructure', description: 'Advanced tracking + qualification + CRM workflows' },
+                { title: 'Full Acquisition Stack', description: 'Custom system + optimization + reporting' },
+              ].map((tier) => (
+                <motion.div
+                  key={tier.title}
+                  variants={{
+                    hidden: { opacity: 0, y: 30 },
+                    visible: { 
+                      opacity: 1, 
+                      y: 0,
+                      transition: { duration: 0.5, ease: [0.25, 0.4, 0.25, 1] }
+                    }
+                  }}
+                >
+                  <GlassCard variant="hover" className="p-6 md:p-8 h-full flex flex-col">
+                    <h4 className="text-lg font-semibold text-foreground mb-3">{tier.title}</h4>
+                    <p className="text-muted-foreground flex-1">{tier.description}</p>
+                  </GlassCard>
+                </motion.div>
+              ))}
+            </motion.div>
+
+            <motion.p 
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.4 }}
+              className="text-sm text-muted-foreground text-center mt-8 max-w-2xl mx-auto"
+            >
+              Most systems begin with a one-time installation followed by monthly optimization. Scope is defined during the audit.
+            </motion.p>
+
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.5, duration: 0.5 }}
+              className="text-center mt-8"
+            >
+              <Button onClick={() => scrollToSection('audit')} className="btn-primary">
+                Get a Free Acquisition Audit
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
             </motion.div>
           </div>
         </section>
@@ -283,7 +577,7 @@ const HomePage: React.FC = () => {
               title="Built for Businesses Where One Customer Matters"
             />
 
-            <motion.div
+            <motion.div 
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, amount: 0.2 }}
@@ -313,8 +607,8 @@ const HomePage: React.FC = () => {
                   visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
                 }}
               >
-                <GlassCard
-                  variant="hover"
+                <GlassCard 
+                  variant="hover" 
                   className="p-6 md:p-8 h-full cursor-pointer"
                   onClick={() => scrollToSection('audit')}
                 >
@@ -329,8 +623,8 @@ const HomePage: React.FC = () => {
                   visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
                 }}
               >
-                <GlassCard
-                  variant="hover"
+                <GlassCard 
+                  variant="hover" 
                   className="p-6 md:p-8 h-full cursor-pointer"
                   onClick={() => scrollToSection('audit')}
                 >
@@ -342,14 +636,14 @@ const HomePage: React.FC = () => {
           </div>
         </section>
 
-        {/* Proof */}
+        {/* System Install Examples */}
         <section ref={sectionRefs.proof} id="proof" className="pt-20 pb-20 bg-white/[0.01]">
           <div className="container-width">
             <SectionHeading
               title="How the System Is Installed in Real Businesses"
             />
 
-            <motion.div
+            <motion.div 
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, amount: 0.2 }}
@@ -409,7 +703,7 @@ const HomePage: React.FC = () => {
           </div>
         </section>
 
-        {/* Audit */}
+        {/* Audit CTA + Form */}
         <section ref={sectionRefs.audit} id="audit" className="pt-24 pb-24">
           <div className="container-width">
             <div className="max-w-2xl mx-auto">
@@ -418,7 +712,7 @@ const HomePage: React.FC = () => {
                 subtitle="We'll audit your acquisition path and show exactly what to install next."
               />
 
-              <motion.div
+              <motion.div 
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -436,7 +730,7 @@ const HomePage: React.FC = () => {
           <div className="container-width">
             <SectionHeading title="Frequently Asked Questions" />
 
-            <motion.div
+            <motion.div 
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}

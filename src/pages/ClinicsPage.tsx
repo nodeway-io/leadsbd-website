@@ -1,7 +1,14 @@
 import React, { useRef, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import { ArrowRight, CheckCircle, XCircle, Activity, Shield, Zap, Clock, Users, Database } from 'lucide-react';
+// Navigation Hooks added for Global Linking
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+// All Icons Imported
+import { 
+  ArrowRight, CheckCircle, XCircle, Activity, Zap, 
+  Search, Layout, Phone, MessageSquare, UserCheck, Calendar, Bell 
+} from 'lucide-react';
+
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import BackToTop from '@/components/BackToTop';
@@ -15,6 +22,10 @@ import WhatsAppButton from '@/components/WhatsAppButton';
 import { Button } from '@/components/ui/button';
 
 const ClinicsPage: React.FC = () => {
+  // Navigation & Location Hooks
+  const navigate = useNavigate();
+  const location = useLocation();
+
   // Scroll to top on page load
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -25,21 +36,64 @@ const ClinicsPage: React.FC = () => {
     audit: useRef<HTMLElement>(null),
   };
 
+  // SMART LINKING LOGIC (Same as Home Page)
   const scrollToSection = (sectionId: string) => {
+    // 1. Check if section exists on THIS page
     const ref = sectionRefs[sectionId as keyof typeof sectionRefs];
+    
     if (ref?.current) {
+      // Local scroll
       ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      // 2. If not found locally, go to Home Page with state
+      navigate('/', { state: { scrollTo: sectionId } });
     }
   };
 
+  // 7 Steps with Icons (Correctly Aligned)
   const pipelineSteps = [
-    { number: 1, title: 'Ad / Search Intent', description: 'Patient discovers your clinic online' },
-    { number: 2, title: 'Clinic Landing Page', description: 'Service-focused patient conversion page' },
-    { number: 3, title: 'Lead Capture', description: 'Form / WhatsApp / Call booking' },
-    { number: 4, title: 'Instant Auto-Response', description: 'Automated confirmation & clinic info' },
-    { number: 5, title: 'Patient Qualification', description: 'Intent scoring & appointment routing' },
-    { number: 6, title: 'Patient Booking', description: 'Calendar integration & scheduling' },
-    { number: 7, title: 'CRM + Reminders', description: 'Follow-up automation & no-show reduction' },
+    { 
+      number: 1, 
+      title: 'Ad / Search Intent', 
+      description: 'Patient discovers your clinic online',
+      icon: <Search className="w-full h-full" />
+    },
+    { 
+      number: 2, 
+      title: 'Clinic Landing Page', 
+      description: 'Service-focused patient conversion page',
+      icon: <Layout className="w-full h-full" />
+    },
+    { 
+      number: 3, 
+      title: 'Lead Capture', 
+      description: 'Form / WhatsApp / Call booking',
+      icon: <Phone className="w-full h-full" />
+    },
+    { 
+      number: 4, 
+      title: 'Instant Auto-Response', 
+      description: 'Automated confirmation & clinic info',
+      icon: <MessageSquare className="w-full h-full" />
+    },
+    { 
+      number: 5, 
+      title: 'Patient Qualification', 
+      description: 'Intent scoring & appointment routing',
+      icon: <UserCheck className="w-full h-full" />
+    },
+    { 
+      number: 6, 
+      title: 'Patient Booking', 
+      description: 'Calendar integration & scheduling',
+      icon: <Calendar className="w-full h-full" />
+    },
+    { 
+      number: 7, 
+      title: 'CRM + Reminders', 
+      description: 'Follow-up automation & no-show reduction',
+      icon: <Bell className="w-full h-full" />
+    },
   ];
 
   const faqItems = [
@@ -65,11 +119,11 @@ const ClinicsPage: React.FC = () => {
     },
     {
       question: 'What does Leads.bd NOT do for clinics?',
-      answer: 'Leads.bd does not run ad campaigns or sell marketing templates. We install patient booking systems and customer acquisition infrastructure—tracking, automation, and landing pages—tailored to your clinic.',
+      answer: 'Leads.bd does not run ad campaigns or sell marketing templates. We install patient booking systems and customer acquisition infrastructure—tracking, automation, landing pages, and patient booking systems—tailored to your clinic.',
     },
   ];
 
-  // Generate FAQPage JSON-LD from faqItems
+  // Schema Markup (SEO)
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -83,7 +137,6 @@ const ClinicsPage: React.FC = () => {
     }))
   };
 
-  // Service schema for clinic marketing services
   const serviceSchema = {
     "@context": "https://schema.org",
     "@type": "Service",
@@ -233,7 +286,7 @@ const ClinicsPage: React.FC = () => {
           </div>
         </section>
 
-        {/* Clinic Booking Pipeline */}
+        {/* ALIGNMENT FIXED: Clinic Booking Pipeline */}
         <section ref={sectionRefs.system} id="system" className="pt-24 pb-24 bg-white/[0.01]">
           <div className="container-width">
             <SectionHeading
@@ -241,6 +294,7 @@ const ClinicsPage: React.FC = () => {
               title="The Clinic Booking Pipeline"
             />
 
+            {/* Added: flex-wrap and justify-center to fix the alignment issue */}
             <motion.div 
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -248,7 +302,10 @@ const ClinicsPage: React.FC = () => {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="mt-12 md:mt-16"
             >
-              <SystemDiagram steps={pipelineSteps} />
+              <SystemDiagram 
+                steps={pipelineSteps} 
+                className="flex-wrap justify-center" 
+              />
             </motion.div>
           </div>
         </section>
