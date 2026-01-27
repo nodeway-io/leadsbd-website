@@ -69,7 +69,7 @@
 
   /* Scroll offset for fixed header on anchor sections */
   [id="system"],
-  [id="industries"],
+  [id="solutions"], /* Fix: Updated from industries */
   [id="proof"],
   [id="faq"],
   [id="audit"] {

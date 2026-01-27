@@ -4,7 +4,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { 
   ArrowRight, Zap, BarChart3, Target, Clock, CheckCircle, 
-  AlertTriangle, Search, UserCheck, Calendar, GitMerge, ChevronRight 
+  AlertTriangle, Search, UserCheck, Calendar, GitMerge
 } from 'lucide-react';
 
 import Header from '@/components/Header';
@@ -42,7 +42,9 @@ const AnimatedNumber = ({ end, suffix = '' }: { end: number, suffix?: string }) 
 };
 
 const HomePage: React.FC = () => {
-  useScrollSpyObserver(['system', 'industries', 'proof', 'faq', 'audit']);
+  // Fix: Updated 'industries' to 'solutions' in ScrollSpy
+  useScrollSpyObserver(['system', 'solutions', 'proof', 'faq', 'audit']);
+  
   const location = useLocation() as any;
   const navigate = useNavigate();
   const { scrollYProgress } = useScroll();
@@ -62,9 +64,10 @@ const HomePage: React.FC = () => {
     scrollToHash();
   }, [location]);
 
+  // Fix: Updated 'industries' to 'solutions' in Refs
   const sectionRefs = {
     system: useRef<HTMLElement>(null),
-    industries: useRef<HTMLElement>(null),
+    solutions: useRef<HTMLElement>(null),
     proof: useRef<HTMLElement>(null),
     faq: useRef<HTMLElement>(null),
     audit: useRef<HTMLElement>(null),
@@ -332,8 +335,9 @@ const HomePage: React.FC = () => {
           </div>
         </section>
 
-        {/* ENGAGEMENT MODELS */}
-        <section className="pt-24 pb-24">
+        {/* ENGAGEMENT MODELS (Target for Solutions Link) */}
+        {/* Fix: Added ref and id for 'solutions' here */}
+        <section ref={sectionRefs.solutions} id="solutions" className="pt-24 pb-24">
           <div className="container-width">
             <SectionHeading title="Engagement Models" subtitle="Built around your scale." />
             <div className="grid md:grid-cols-3 gap-6 mt-12">

@@ -31,22 +31,23 @@ export const Header: React.FC<HeaderProps> = ({ scrollToSection }) => {
   }, [location]);
 
   const isNavItemActive = (sectionId: string) => {
-    if (location.pathname === '/clinics-growth' && sectionId === 'industries') return true;
+    // Fix: Updated 'industries' to 'solutions' to match new ID
+    if (location.pathname === '/clinics-growth' && sectionId === 'solutions') return true;
     if (location.pathname === '/') return activeSection === sectionId;
     return false;
   };
 
-  // Renamed 'Industries' to 'Solutions' for broader appeal
+  // Fix: Updated sectionId from 'industries' to 'solutions'
   const navItems = [
     { label: 'System', sectionId: 'system' },
-    { label: 'Solutions', sectionId: 'industries' }, // Maps to the same section logic
+    { label: 'Solutions', sectionId: 'solutions' }, 
     { label: 'Proof', sectionId: 'proof' },
     { label: 'FAQs', sectionId: 'faq' },
   ];
 
   const handleNavClick = (sectionId: string) => {
     if (scrollToSection) scrollToSection(sectionId);
-    setIsMenuOpen(false);
+    setIsMenuOpen(false); // Ensures mobile menu closes on click
   };
 
   const handleAuditClick = () => {
