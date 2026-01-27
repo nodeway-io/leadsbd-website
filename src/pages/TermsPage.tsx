@@ -1,94 +1,139 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { FileText, CheckCircle, AlertTriangle, Briefcase } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import BackToTop from '@/components/BackToTop';
 import PageTransition from '@/components/PageTransition';
 import GlassCard from '@/components/GlassCard';
+import SectionHeading from '@/components/SectionHeading';
+import WhatsAppButton from '@/components/WhatsAppButton';
 
 const TermsPage: React.FC = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  const handleGlobalNavigation = (sectionId: string) => {
+    navigate('/', { state: { scrollTo: sectionId } });
+  };
+
   return (
     <PageTransition>
       <Helmet>
-        <title>Terms of Service | Leads.bd</title>
-        <meta name="description" content="Terms of service for Leads.bd - Read our terms and conditions." />
-        <meta name="robots" content="index, follow" />
+        <title>Terms of Service | Infrastructure Agreements | Leads.bd</title>
+        <meta name="description" content="Terms regarding our customer acquisition infrastructure, licensing, and client responsibilities." />
+        <meta name="robots" content="noindex, follow" />
         <link rel="canonical" href="https://leads.bd/terms" />
       </Helmet>
 
-      <Header />
+      <Header scrollToSection={handleGlobalNavigation} />
 
       <main className="min-h-screen bg-infrastructure pt-32 pb-20">
         <div className="container-width">
-          <div className="max-w-3xl mx-auto">
-            <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-8">Terms of Service</h1>
-            
-            <GlassCard className="p-6 md:p-10">
-              <div className="prose prose-invert max-w-none">
-                <p className="text-muted-foreground mb-6">
-                  Last updated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+          <div className="max-w-4xl mx-auto">
+            <SectionHeading 
+              tag="Service Agreement"
+              title="Terms of Service"
+              subtitle="Defining the relationship between System Builder (Us) and System Owner (You)."
+            />
+
+             {/* TL;DR Summary Card */}
+             <div className="mt-8 mb-12">
+              <GlassCard variant="strong" className="p-6 md:p-8 border-white/10">
+                <div className="flex items-center gap-3 mb-4">
+                  <FileText className="w-6 h-6 text-foreground" />
+                  <h3 className="text-lg font-bold text-foreground">Terms at a Glance (TL;DR)</h3>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4 text-sm text-muted-foreground">
+                  <ul className="space-y-2">
+                    <li className="flex gap-2">
+                      <span className="text-primary font-bold">✓</span>
+                      We install infrastructure (tracking, automation, pages).
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="text-primary font-bold">✓</span>
+                      You own the data and the leads generated.
+                    </li>
+                  </ul>
+                  <ul className="space-y-2">
+                    <li className="flex gap-2">
+                      <span className="text-primary font-bold">!</span>
+                      Results depend on market execution (ad spend, offer).
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="text-primary font-bold">!</span>
+                      We are not responsible for third-party (Meta/Google) bans.
+                    </li>
+                  </ul>
+                </div>
+              </GlassCard>
+            </div>
+
+            <GlassCard className="p-8 md:p-12">
+              <div className="prose prose-invert max-w-none text-muted-foreground">
+                <p className="text-sm opacity-60 mb-8">
+                  Last updated: January 28, 2026
                 </p>
 
-                <section className="mb-8">
-                  <h2 className="text-xl font-semibold text-foreground mb-4">1. Acceptance of Terms</h2>
-                  <p className="text-muted-foreground">
-                    By accessing or using the Leads.bd website and services, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our services.
-                  </p>
-                </section>
+                <h3 className="text-foreground font-semibold text-xl mb-4">1. Scope of Services</h3>
+                <p className="mb-8">
+                  Leads.bd provides "Customer Acquisition Infrastructure" services. This includes the design, development, and integration of tracking systems, landing pages, automation workflows, and CRM pipelines. We act as architects and engineers for your growth systems.
+                </p>
 
-                <section className="mb-8">
-                  <h2 className="text-xl font-semibold text-foreground mb-4">2. Description of Services</h2>
-                  <p className="text-muted-foreground">
-                    Leads.bd provides customer acquisition infrastructure services, including but not limited to tracking setup, landing page development, automation systems, and booking integrations for service businesses.
-                  </p>
-                </section>
+                <h3 className="text-foreground font-semibold text-xl mb-4 flex items-center gap-2">
+                  <Briefcase className="w-5 h-5 text-primary" />
+                  2. Client Responsibilities
+                </h3>
+                <p>To ensure the system functions correctly, you agree to:</p>
+                <ul className="list-disc pl-5 space-y-2 mb-8">
+                  <li>Provide timely access to necessary accounts (Ad Managers, Domain DNS, CRM).</li>
+                  <li>Ensure your business offer and services comply with local laws.</li>
+                  <li>Manage the daily operation of the system (e.g., calling leads, managing ad budget), unless a management retainer is agreed upon.</li>
+                </ul>
 
-                <section className="mb-8">
-                  <h2 className="text-xl font-semibold text-foreground mb-4">3. User Responsibilities</h2>
-                  <p className="text-muted-foreground mb-4">
-                    You agree to:
-                  </p>
-                  <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-4">
-                    <li>Provide accurate and complete information</li>
-                    <li>Use our services only for lawful purposes</li>
-                    <li>Not interfere with the proper functioning of our website</li>
-                    <li>Comply with all applicable laws and regulations</li>
+                <h3 className="text-foreground font-semibold text-xl mb-4">3. Intellectual Property & Ownership</h3>
+                <div className="bg-white/5 p-5 rounded-lg border border-white/10 mb-8">
+                  <ul className="list-disc pl-5 space-y-2 text-sm">
+                    <li><strong>You Own:</strong> The leads, patient data, domain names, and ad accounts connected to the system.</li>
+                    <li><strong>We Retain:</strong> Intellectual property rights to our proprietary code snippets, automation templates, and "System Logic" frameworks, granting you a perpetual license to use them for your business.</li>
                   </ul>
-                </section>
+                </div>
 
-                <section className="mb-8">
-                  <h2 className="text-xl font-semibold text-foreground mb-4">4. Intellectual Property</h2>
-                  <p className="text-muted-foreground">
-                    All content on this website, including text, graphics, logos, and software, is the property of Leads.bd or its licensors and is protected by intellectual property laws.
-                  </p>
-                </section>
+                <h3 className="text-foreground font-semibold text-xl mb-4 flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5 text-destructive" />
+                  4. Performance & Results Disclaimer
+                </h3>
+                <p className="mb-8">
+                  While we build high-performance infrastructure based on proven data, <strong>we cannot guarantee specific revenue, booking numbers, or ad costs.</strong> Marketing results are influenced by external factors such as competition, platform algorithms (Meta/Google), market demand, and your team's sales follow-up. We guarantee the <em>functionality</em> of the system, not the <em>market response</em>.
+                </p>
 
-                <section className="mb-8">
-                  <h2 className="text-xl font-semibold text-foreground mb-4">5. Limitation of Liability</h2>
-                  <p className="text-muted-foreground">
-                    Leads.bd shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising out of or relating to your use of our services. Results may vary based on market conditions, budget, and execution.
-                  </p>
-                </section>
+                <h3 className="text-foreground font-semibold text-xl mb-4">5. Third-Party Platforms</h3>
+                <p className="mb-8">
+                  Our systems rely on third-party platforms (e.g., Facebook Ads, Google Analytics, WhatsApp). We are not liable for service interruptions, policy changes, or account suspensions imposed by these external providers.
+                </p>
 
-                <section className="mb-8">
-                  <h2 className="text-xl font-semibold text-foreground mb-4">6. Modifications</h2>
-                  <p className="text-muted-foreground">
-                    We reserve the right to modify these Terms of Service at any time. Changes will be effective immediately upon posting to our website.
-                  </p>
-                </section>
+                <h3 className="text-foreground font-semibold text-xl mb-4">6. Payment & Refunds</h3>
+                <p className="mb-8">
+                  Services are billed as per the agreed proposal (Project Basis or Retainer). Due to the labor-intensive nature of infrastructure setup, setup fees are generally non-refundable once work has commenced.
+                </p>
 
-                <section>
-                  <h2 className="text-xl font-semibold text-foreground mb-4">7. Governing Law</h2>
-                  <p className="text-muted-foreground">
-                    These Terms of Service shall be governed by and construed in accordance with applicable laws, without regard to conflict of law principles.
-                  </p>
-                </section>
+                <h3 className="text-foreground font-semibold text-xl mb-4">7. Governing Law</h3>
+                <p className="mb-8">
+                  These terms shall be governed by the laws of Bangladesh, applicable to our global remote operations.
+                </p>
               </div>
             </GlassCard>
 
-            <div className="mt-8 text-center">
-              <Link to="/" className="text-primary hover:underline text-sm">
+            <div className="mt-12 text-center">
+              <Link 
+                to="/" 
+                onClick={() => window.scrollTo(0, 0)}
+                className="text-primary hover:underline text-sm font-medium"
+              >
                 ← Back to Home
               </Link>
             </div>
@@ -97,6 +142,7 @@ const TermsPage: React.FC = () => {
       </main>
 
       <Footer />
+      <WhatsAppButton />
       <BackToTop />
     </PageTransition>
   );

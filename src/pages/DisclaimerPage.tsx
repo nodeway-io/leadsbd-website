@@ -1,81 +1,128 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { AlertCircle, HelpCircle, XCircle } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import BackToTop from '@/components/BackToTop';
 import PageTransition from '@/components/PageTransition';
 import GlassCard from '@/components/GlassCard';
+import SectionHeading from '@/components/SectionHeading';
+import WhatsAppButton from '@/components/WhatsAppButton';
 
 const DisclaimerPage: React.FC = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  const handleGlobalNavigation = (sectionId: string) => {
+    navigate('/', { state: { scrollTo: sectionId } });
+  };
+
   return (
     <PageTransition>
       <Helmet>
-        <title>Disclaimer | Leads.bd</title>
-        <meta name="description" content="Disclaimer for Leads.bd - Important legal information about our services." />
-        <meta name="robots" content="index, follow" />
+        <title>Disclaimer | Platform Affiliations & Results | Leads.bd</title>
+        <meta name="description" content="Important disclaimers regarding platform affiliations (Meta/Google) and service results." />
+        <meta name="robots" content="noindex, follow" />
         <link rel="canonical" href="https://leads.bd/disclaimer" />
       </Helmet>
 
-      <Header />
+      <Header scrollToSection={handleGlobalNavigation} />
 
       <main className="min-h-screen bg-infrastructure pt-32 pb-20">
         <div className="container-width">
-          <div className="max-w-3xl mx-auto">
-            <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-8">Disclaimer</h1>
-            
-            <GlassCard className="p-6 md:p-10">
-              <div className="prose prose-invert max-w-none">
-                <p className="text-muted-foreground mb-6">
-                  Last updated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+          <div className="max-w-4xl mx-auto">
+            <SectionHeading 
+              tag="Transparency"
+              title="Platform & Results Disclaimer"
+              subtitle="Clear expectations for our partnership."
+            />
+
+            {/* TL;DR Summary Card */}
+            <div className="mt-8 mb-12">
+              <GlassCard variant="strong" className="p-6 md:p-8 border-destructive/20 bg-destructive/5">
+                <div className="flex items-center gap-3 mb-4">
+                  <AlertCircle className="w-6 h-6 text-destructive" />
+                  <h3 className="text-lg font-bold text-foreground">Critical Disclaimers (TL;DR)</h3>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4 text-sm text-muted-foreground">
+                  <ul className="space-y-2">
+                    <li className="flex gap-2">
+                      <span className="text-destructive font-bold">✕</span>
+                      We are NOT Meta (Facebook) or Google.
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="text-destructive font-bold">✕</span>
+                      We do NOT guarantee specific earnings/ROI.
+                    </li>
+                  </ul>
+                  <ul className="space-y-2">
+                    <li className="flex gap-2">
+                      <span className="text-destructive font-bold">✕</span>
+                      We do NOT provide medical advice (for Clinics).
+                    </li>
+                  </ul>
+                </div>
+              </GlassCard>
+            </div>
+
+            <GlassCard className="p-8 md:p-12">
+              <div className="prose prose-invert max-w-none text-muted-foreground">
+                <p className="text-sm opacity-60 mb-8">
+                  Last updated: January 28, 2026
                 </p>
 
-                <section className="mb-8">
-                  <h2 className="text-xl font-semibold text-foreground mb-4">Platform Affiliations</h2>
-                  <p className="text-muted-foreground">
-                    This website is not affiliated with, endorsed by, or sponsored by Meta (Facebook), Google, or Microsoft. Any references to these platforms are for informational purposes only to describe our integration capabilities.
-                  </p>
-                </section>
+                <h3 className="text-foreground font-semibold text-xl mb-4">1. Platform Affiliation</h3>
+                <p className="mb-8">
+                  Leads.bd is an independent infrastructure consultancy. This website and our services are <strong>not affiliated with, endorsed by, administered by, or associated with Meta Platforms, Inc. (Facebook/Instagram), Google LLC, Microsoft Corporation, or TikTok.</strong> All trademarks remain the property of their respective owners. We use these platforms as tools to deliver our services.
+                </p>
 
-                <section className="mb-8">
-                  <h2 className="text-xl font-semibold text-foreground mb-4">Results Disclaimer</h2>
-                  <p className="text-muted-foreground">
-                    Results may vary based on multiple factors including but not limited to market conditions, budget, execution, industry, and individual business circumstances. Past performance of our systems or examples shared do not guarantee future results.
-                  </p>
-                </section>
+                <h3 className="text-foreground font-semibold text-xl mb-4">2. Earnings & Results Disclaimer</h3>
+                <p>
+                  Any case studies, revenue figures, or booking numbers shown on this site are real examples from our clients or our own tests. However:
+                </p>
+                <ul className="list-disc pl-5 space-y-2 mb-8">
+                  <li>They are used for illustrative purposes only.</li>
+                  <li>They represent specific results under specific market conditions.</li>
+                  <li><strong>Your results will vary</strong> based on your location, budget, industry, offer, and execution capability. We do not guarantee that you will achieve the same results.</li>
+                </ul>
 
-                <section className="mb-8">
-                  <h2 className="text-xl font-semibold text-foreground mb-4">Informational Purpose</h2>
-                  <p className="text-muted-foreground">
-                    The information provided on this website is for general informational purposes only. It is not intended to be professional advice and should not be relied upon as such. Please consult with appropriate professionals for advice specific to your situation.
+                <h3 className="text-foreground font-semibold text-xl mb-4 flex items-center gap-2">
+                  <HelpCircle className="w-5 h-5 text-primary" />
+                  3. For Healthcare & Clinic Clients
+                </h3>
+                <div className="bg-white/5 p-5 rounded-lg border border-white/10 mb-8">
+                  <p className="mb-2">
+                    Our services for clinics (Dental, IVF, Cosmetic) are strictly limited to <strong>Marketing & Operational Infrastructure</strong>.
                   </p>
-                </section>
+                  <ul className="list-disc pl-5 space-y-1 text-sm">
+                    <li>We do not provide medical advice, diagnosis, or treatment plans.</li>
+                    <li>Any content we create for your ads or landing pages must be reviewed by your medical professionals for accuracy.</li>
+                    <li>You are responsible for ensuring your marketing complies with local medical advertising regulations.</li>
+                  </ul>
+                </div>
 
-                <section className="mb-8">
-                  <h2 className="text-xl font-semibold text-foreground mb-4">Third-Party Tools</h2>
-                  <p className="text-muted-foreground">
-                    We work with various third-party tools and platforms (such as Google Analytics, Meta CAPI, CRM systems, etc.) to deliver our services. We are not responsible for the performance, policies, or practices of these third-party services.
-                  </p>
-                </section>
+                <h3 className="text-foreground font-semibold text-xl mb-4">4. Third-Party Risk</h3>
+                <p className="mb-8">
+                  We are not responsible for the actions of third-party platforms. If an ad account is banned or a software API changes, we will work to fix the infrastructure, but we are not liable for business losses caused by external platform policies.
+                </p>
 
-                <section className="mb-8">
-                  <h2 className="text-xl font-semibold text-foreground mb-4">No Guarantees</h2>
-                  <p className="text-muted-foreground">
-                    While we strive to provide effective customer acquisition infrastructure, we make no guarantees regarding specific results, conversion rates, booking numbers, or revenue outcomes. Success depends on many factors beyond the systems we install.
-                  </p>
-                </section>
-
-                <section>
-                  <h2 className="text-xl font-semibold text-foreground mb-4">Contact</h2>
-                  <p className="text-muted-foreground">
-                    If you have any questions about this disclaimer, please contact us through our website.
-                  </p>
-                </section>
+                <h3 className="text-foreground font-semibold text-xl mb-4">5. Professional Advice</h3>
+                <p className="mb-8">
+                  The information provided on this website is for general informational purposes only and should not be considered as professional legal, financial, or medical advice.
+                </p>
               </div>
             </GlassCard>
 
-            <div className="mt-8 text-center">
-              <Link to="/" className="text-primary hover:underline text-sm">
+            <div className="mt-12 text-center">
+              <Link 
+                to="/" 
+                onClick={() => window.scrollTo(0, 0)}
+                className="text-primary hover:underline text-sm font-medium"
+              >
                 ← Back to Home
               </Link>
             </div>
@@ -84,6 +131,7 @@ const DisclaimerPage: React.FC = () => {
       </main>
 
       <Footer />
+      <WhatsAppButton />
       <BackToTop />
     </PageTransition>
   );

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Mail, Phone } from 'lucide-react';
+import { Mail, Phone, ArrowRight, Clock, ShieldCheck } from 'lucide-react';
 import Logo from './Logo';
 import { useScrollSpy } from '@/contexts/ScrollSpyContext';
 
@@ -66,32 +66,50 @@ export const Footer: React.FC = () => {
   };
 
   return (
-    <footer className="border-t border-white/10 bg-infrastructure-dark/50">
+    <footer className="border-t border-white/10 bg-infrastructure-dark/50 relative overflow-hidden">
+      {/* Background Glow */}
+      <div className="absolute top-0 left-1/4 w-1/2 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
       <div className="container-width px-5 sm:px-6 py-10 md:py-16 pb-24 sm:pb-12 md:pb-16">
+        
+        {/* Pre-Footer Closure CTA (Mobile & Desktop) */}
+        <div className="mb-12 border-b border-white/5 pb-8">
+          <Link to="/#system" className="group inline-flex items-center text-white/80 hover:text-primary transition-colors">
+            <span className="text-sm font-medium">Not ready for an audit? See how the architecture works</span>
+            <ArrowRight className="ml-2 w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </div>
+
         {/* Main Footer Grid */}
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-10">
           {/* Brand Block */}
           <div className="flex flex-col items-center sm:items-start">
-            <Link to="/" onClick={() => window.scrollTo(0, 0)} className="inline-block">
+            <Link to="/" onClick={() => window.scrollTo(0, 0)} className="inline-block mb-4">
               <Logo variant="dark" />
             </Link>
 
-            <p className="mt-3 text-sm text-white/70 leading-relaxed max-w-[320px] text-center sm:text-left">
-              Customer acquisition infrastructure for high-value service businesses.
-            </p>
-            <p className="mt-2 text-sm text-white/70 leading-relaxed max-w-[320px] text-center sm:text-left">
-              Remote-first. Serving clients globally from Dhaka, Bangladesh.
+            {/* System Status Indicator - NEW */}
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 mb-4">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span className="text-[10px] font-mono font-medium text-white/70 tracking-wide uppercase">All Systems Operational</span>
+            </div>
+
+            <p className="text-sm text-white/60 leading-relaxed max-w-[320px] text-center sm:text-left">
+              Engineered growth infrastructure for high-value service businesses.
             </p>
 
-            <nav aria-label="Social media links" className="mt-4 sm:mt-6">
-              <ul className="flex items-center justify-center sm:justify-start gap-2">
+            <nav aria-label="Social media links" className="mt-6">
+              <ul className="flex items-center justify-center sm:justify-start gap-3">
                 {socialLinks.map((social) => (
                   <li key={social.name}>
                     <a
                       href={social.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-full sm:rounded-lg text-white/55 hover:text-white hover:bg-white/5 transition-colors duration-200"
+                      className="flex items-center justify-center w-10 h-10 rounded-lg bg-white/5 border border-white/5 text-white/60 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all duration-200"
                       aria-label={social.name}
                     >
                       {social.icon}
@@ -104,115 +122,140 @@ export const Footer: React.FC = () => {
 
           {/* Contact Block */}
           <address className="not-italic flex flex-col items-center sm:items-start">
-            <h4 className="text-sm font-semibold tracking-tight text-white mb-4 sm:mb-5">
-              Contact
+            <h4 className="text-sm font-semibold tracking-tight text-white mb-4 sm:mb-5 flex items-center gap-2">
+              Contact Support
             </h4>
-            <ul className="space-y-1">
+            <ul className="space-y-3">
               <li>
                 <a
                   href="mailto:contact@leads.bd"
-                  className="group flex items-center justify-center sm:justify-start gap-3 py-2 text-sm text-white/70 hover:text-white transition-colors"
+                  className="group flex items-center justify-center sm:justify-start gap-3 text-sm text-white/70 hover:text-white transition-colors"
                 >
-                  <Mail className="w-4 h-4 flex-shrink-0 text-white/50 group-hover:text-white/80 transition-colors" />
+                  <Mail className="w-4 h-4 flex-shrink-0 text-white/40 group-hover:text-primary transition-colors" />
                   <span>contact@leads.bd</span>
                 </a>
               </li>
               <li>
                 <a
                   href="tel:+8801733000786"
-                  className="group flex items-center justify-center sm:justify-start gap-3 py-2 text-sm text-white/70 hover:text-white transition-colors"
+                  className="group flex items-center justify-center sm:justify-start gap-3 text-sm text-white/70 hover:text-white transition-colors"
                 >
-                  <Phone className="w-4 h-4 flex-shrink-0 text-white/50 group-hover:text-white/80 transition-colors" />
+                  <Phone className="w-4 h-4 flex-shrink-0 text-white/40 group-hover:text-primary transition-colors" />
                   <span>+880 1733 000 786</span>
                 </a>
+              </li>
+              {/* Response Time Trust Signal - NEW */}
+              <li className="pt-2">
+                <div className="flex items-center gap-2 text-xs text-white/40 bg-white/5 px-3 py-1.5 rounded-md inline-flex">
+                  <Clock className="w-3 h-3" />
+                  <span>Avg. Response: &lt;24h</span>
+                </div>
               </li>
             </ul>
           </address>
 
-          {/* Pages Block */}
-          <nav aria-label="Site pages" className="flex flex-col items-center sm:items-start">
-            <h4 className="text-sm font-semibold tracking-tight text-white mb-4 sm:mb-5">
-              Pages
-            </h4>
-            <ul className="space-y-1">
-              <li>
-                <Link
-                  to="/"
-                  onClick={() => window.scrollTo(0, 0)}
-                  className="block py-2 text-sm text-white/70 hover:text-white transition-colors"
-                >
-                  Home
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/clinics-growth"
-                  onClick={() => window.scrollTo(0, 0)}
-                  className={`block py-2 text-sm transition-colors ${
-                    isNavItemActive('industries') ? 'text-primary' : 'text-white/70 hover:text-white'
-                  }`}
-                >
-                  Clinics
-                </Link>
-              </li>
-            </ul>
-          </nav>
+          {/* Platform & Legal - Optimized Mobile Layout (Side-by-Side) */}
+          <div className="col-span-1 sm:col-span-2 lg:col-span-2 grid grid-cols-2 gap-8 sm:gap-12">
+            
+            {/* Platform Block (Renamed from Pages) */}
+            <nav aria-label="Platform pages" className="flex flex-col items-center sm:items-start">
+              <h4 className="text-sm font-semibold tracking-tight text-white mb-4 sm:mb-5">
+                Platform
+              </h4>
+              <ul className="space-y-2 text-center sm:text-left">
+                <li>
+                  <Link
+                    to="/"
+                    onClick={() => window.scrollTo(0, 0)}
+                    className="block text-sm text-white/60 hover:text-white transition-colors"
+                  >
+                    System Logic
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/clinics-growth"
+                    onClick={() => window.scrollTo(0, 0)}
+                    className={`block text-sm transition-colors ${
+                      isNavItemActive('industries') ? 'text-primary font-medium' : 'text-white/60 hover:text-white'
+                    }`}
+                  >
+                    For Clinics
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/#proof"
+                    className="block text-sm text-white/60 hover:text-white transition-colors"
+                  >
+                    Case Studies
+                  </Link>
+                </li>
+              </ul>
+            </nav>
 
-          {/* Legal Block */}
-          <nav aria-label="Legal pages" className="flex flex-col items-center sm:items-start">
-            <h4 className="text-sm font-semibold tracking-tight text-white mb-4 sm:mb-5">
-              Legal
-            </h4>
-            <ul className="space-y-1">
-              <li>
-                <Link
-                  to="/privacy"
-                  onClick={() => window.scrollTo(0, 0)}
-                  className="block py-2 text-sm text-white/70 hover:text-white transition-colors"
-                >
-                  Privacy Policy
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/terms"
-                  onClick={() => window.scrollTo(0, 0)}
-                  className="block py-2 text-sm text-white/70 hover:text-white transition-colors"
-                >
-                  Terms of Service
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/disclaimer"
-                  onClick={() => window.scrollTo(0, 0)}
-                  className="block py-2 text-sm text-white/70 hover:text-white transition-colors"
-                >
-                  Disclaimer
-                </Link>
-              </li>
-            </ul>
-          </nav>
+            {/* Legal Block */}
+            <nav aria-label="Legal pages" className="flex flex-col items-center sm:items-start">
+              <h4 className="text-sm font-semibold tracking-tight text-white mb-4 sm:mb-5">
+                Legal
+              </h4>
+              <ul className="space-y-2 text-center sm:text-left">
+                <li>
+                  <Link
+                    to="/privacy"
+                    onClick={() => window.scrollTo(0, 0)}
+                    className="block text-sm text-white/60 hover:text-white transition-colors"
+                  >
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/terms"
+                    onClick={() => window.scrollTo(0, 0)}
+                    className="block text-sm text-white/60 hover:text-white transition-colors"
+                  >
+                    Terms of Service
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/disclaimer"
+                    onClick={() => window.scrollTo(0, 0)}
+                    className="block text-sm text-white/60 hover:text-white transition-colors"
+                  >
+                    Disclaimer
+                  </Link>
+                </li>
+              </ul>
+            </nav>
+          </div>
         </div>
 
         {/* Divider + Bottom Section */}
-        <div className="border-t border-white/10 mt-10 sm:mt-12 pt-6 sm:pt-8">
-          <p className="text-xs text-white/60 leading-relaxed max-w-4xl mx-auto sm:mx-0 text-center sm:text-left">
-            This website is not affiliated with, endorsed by, or sponsored by Meta (Facebook), Google, or Microsoft.
-            Results may vary based on multiple factors including market conditions, budget, and execution.
-          </p>
-          <p className="text-xs text-white/60 mt-3 sm:mt-4 text-center sm:text-left">
-            © 2026 Leads.bd. A{' '}
-            <a
-              href="https://nodeway.io"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-white transition-colors"
-            >
-              NodeWay
-            </a>{' '}
-            Brand. All rights reserved.
-          </p>
+        <div className="border-t border-white/10 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="text-center md:text-left">
+             <p className="text-xs text-white/50 leading-relaxed max-w-2xl">
+              This website is not affiliated with, endorsed by, or sponsored by Meta (Facebook), Google, or Microsoft.
+              Results vary by market conditions.
+            </p>
+            <p className="text-xs text-white/50 mt-2">
+              © {new Date().getFullYear()} Leads.bd. An Engineering Brand by{' '}
+              <a
+                href="https://nodeway.io"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition-colors border-b border-white/20 hover:border-white"
+              >
+                NodeWay
+              </a>.
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-2 opacity-50 grayscale hover:grayscale-0 hover:opacity-100 transition-all">
+             <ShieldCheck className="w-4 h-4 text-emerald-500" />
+             <span className="text-[10px] font-mono text-white/60">SECURE INFRASTRUCTURE</span>
+          </div>
         </div>
       </div>
     </footer>
