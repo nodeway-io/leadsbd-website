@@ -59,7 +59,11 @@ export const Header: React.FC<HeaderProps> = ({ scrollToSection }) => {
   };
 
   const handleAuditClick = () => {
-    goToSection('audit');
+    if (location.pathname === '/' && scrollToSection) {
+      scrollToSection('audit');
+    } else {
+      navigate('/', { state: { scrollTo: 'audit' } });
+    }
     setIsMenuOpen(false);
   };
 
