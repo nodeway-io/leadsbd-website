@@ -30,24 +30,28 @@ export const Header: React.FC<HeaderProps> = ({ scrollToSection }) => {
     setIsMenuOpen(false);
   }, [location]);
 
-  const isNavItemActive = (sectionId: string) => {
-    // Fix: Updated 'industries' to 'solutions' to match new ID
-    if (location.pathname === '/clinics-growth' && sectionId === 'solutions') return true;
-    if (location.pathname === '/') return activeSection === sectionId;
+  const isNavItemActive = (item: any) => {
+    // If it's the Solutions page
+    if (item.label === 'Solutions' && location.pathname === '/clinics-growth') return true;
+    // If it's a scroll section on Homepage
+    if (location.pathname === '/' && activeSection === item.target) return true;
     return false;
   };
 
-  // Fix: Updated sectionId from 'industries' to 'solutions'
+  // UPDATED: Solutions is now a direct page route, others are scroll targets
   const navItems = [
-    { label: 'System', sectionId: 'system' },
-    { label: 'Solutions', sectionId: 'solutions' }, 
-    { label: 'Proof', sectionId: 'proof' },
-    { label: 'FAQs', sectionId: 'faq' },
+    { label: 'System', target: 'system', type: 'scroll' },
+    { label: 'Solutions', target: '/clinics-growth', type: 'route' }, // Direct Page Link
+    { label: 'Proof', target: 'proof', type: 'scroll' },
+    { label: 'FAQs', target: 'faq', type: 'scroll' },
   ];
 
-  const handleNavClick = (sectionId: string) => {
-    if (scrollToSection) scrollToSection(sectionId);
-    setIsMenuOpen(false); // Ensures mobile menu closes on click
+  const handleNavClick = (item: any) => {
+    if (item.type === 'scroll' && scrollToSection) {
+      scrollToSection(item.target);
+    }
+    // For 'route' type, the Link component handles navigation
+    setIsMenuOpen(false);
   };
 
   const handleAuditClick = () => {
@@ -75,33 +79,51 @@ export const Header: React.FC<HeaderProps> = ({ scrollToSection }) => {
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-8">
-              {navItems.map((item) => (
-                location.pathname === '/' ? (
-                  <button
-                    key={item.label}
-                    onClick={() => handleNavClick(item.sectionId)}
-                    className={`nav-link text-sm font-medium transition-colors ${
-                      isNavItemActive(item.sectionId)
-                        ? 'text-primary active'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                ) : (
-                  <Link
-                    key={item.label}
-                    to={`/#${item.sectionId}`}
-                    className={`nav-link text-sm font-medium transition-colors ${
-                      isNavItemActive(item.sectionId)
-                        ? 'text-primary active'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                )
-              ))}
+              {navItems.map((item) => {
+                if (item.type === 'route') {
+                  // External Page Link (Solutions)
+                  return (
+                    <Link
+                      key={item.label}
+                      to={item.target}
+                      className={`nav-link text-sm font-medium transition-colors ${
+                        isNavItemActive(item)
+                          ? 'text-primary active'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                } else {
+                  // Scroll Link (System, Proof, FAQ)
+                  return location.pathname === '/' ? (
+                    <button
+                      key={item.label}
+                      onClick={() => handleNavClick(item)}
+                      className={`nav-link text-sm font-medium transition-colors ${
+                        isNavItemActive(item)
+                          ? 'text-primary active'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  ) : (
+                    <Link
+                      key={item.label}
+                      to={`/#${item.target}`}
+                      className={`nav-link text-sm font-medium transition-colors ${
+                        isNavItemActive(item)
+                          ? 'text-primary active'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                }
+              })}
             </nav>
 
             {/* CTA Button (Desktop) with Shimmer */}
@@ -137,34 +159,53 @@ export const Header: React.FC<HeaderProps> = ({ scrollToSection }) => {
             className="fixed inset-0 z-40 bg-black/95 backdrop-blur-2xl md:hidden flex flex-col pt-32 px-6"
           >
             <nav className="flex flex-col gap-6 items-center">
-              {navItems.map((item) => (
-                location.pathname === '/' ? (
-                  <button
-                    key={item.label}
-                    onClick={() => handleNavClick(item.sectionId)}
-                    className={`text-2xl font-medium transition-colors ${
-                      isNavItemActive(item.sectionId)
-                        ? 'text-primary'
-                        : 'text-white/80'
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                ) : (
-                  <Link
-                    key={item.label}
-                    to={`/#${item.sectionId}`}
-                    onClick={() => setIsMenuOpen(false)}
-                    className={`text-2xl font-medium transition-colors ${
-                      isNavItemActive(item.sectionId)
-                        ? 'text-primary'
-                        : 'text-white/80'
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                )
-              ))}
+              {navItems.map((item) => {
+                if (item.type === 'route') {
+                  // Mobile External Link
+                  return (
+                    <Link
+                      key={item.label}
+                      to={item.target}
+                      onClick={() => setIsMenuOpen(false)}
+                      className={`text-2xl font-medium transition-colors ${
+                        isNavItemActive(item)
+                          ? 'text-primary'
+                          : 'text-white/80'
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                } else {
+                  // Mobile Scroll Link
+                  return location.pathname === '/' ? (
+                    <button
+                      key={item.label}
+                      onClick={() => handleNavClick(item)}
+                      className={`text-2xl font-medium transition-colors ${
+                        isNavItemActive(item)
+                          ? 'text-primary'
+                          : 'text-white/80'
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  ) : (
+                    <Link
+                      key={item.label}
+                      to={`/#${item.target}`}
+                      onClick={() => setIsMenuOpen(false)}
+                      className={`text-2xl font-medium transition-colors ${
+                        isNavItemActive(item)
+                          ? 'text-primary'
+                          : 'text-white/80'
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                }
+              })}
               
               <div className="w-full h-px bg-white/10 my-4" />
               

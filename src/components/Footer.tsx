@@ -59,12 +59,6 @@ export const Footer: React.FC = () => {
   const location = useLocation();
   const { activeSection } = useScrollSpy();
 
-  const isNavItemActive = (sectionId: string) => {
-    if (location.pathname === '/clinics-growth' && sectionId === 'industries') return true;
-    if (location.pathname === '/') return activeSection === sectionId;
-    return false;
-  };
-
   return (
     <footer className="border-t border-white/10 bg-infrastructure-dark/50 relative overflow-hidden">
       {/* Background Glow */}
@@ -72,7 +66,7 @@ export const Footer: React.FC = () => {
 
       <div className="container-width px-5 sm:px-6 py-10 md:py-16 pb-24 sm:pb-12 md:pb-16">
         
-        {/* Pre-Footer Closure CTA (Mobile & Desktop) */}
+        {/* Pre-Footer Closure CTA */}
         <div className="mb-12 border-b border-white/5 pb-8">
           <Link to="/#system" className="group inline-flex items-center text-white/80 hover:text-primary transition-colors">
             <span className="text-sm font-medium">Not ready for an audit? See how the architecture works</span>
@@ -88,7 +82,7 @@ export const Footer: React.FC = () => {
               <Logo variant="dark" />
             </Link>
 
-            {/* System Status Indicator - NEW */}
+            {/* System Status Indicator */}
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 mb-4">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
@@ -144,7 +138,7 @@ export const Footer: React.FC = () => {
                   <span>+880 1733 000 786</span>
                 </a>
               </li>
-              {/* Response Time Trust Signal - NEW */}
+              {/* Response Time Trust Signal */}
               <li className="pt-2">
                 <div className="flex items-center gap-2 text-xs text-white/40 bg-white/5 px-3 py-1.5 rounded-md inline-flex">
                   <Clock className="w-3 h-3" />
@@ -154,10 +148,10 @@ export const Footer: React.FC = () => {
             </ul>
           </address>
 
-          {/* Platform & Legal - Optimized Mobile Layout (Side-by-Side) */}
+          {/* Platform & Legal - Optimized Mobile Layout */}
           <div className="col-span-1 sm:col-span-2 lg:col-span-2 grid grid-cols-2 gap-8 sm:gap-12">
             
-            {/* Platform Block (Renamed from Pages) */}
+            {/* Platform Block */}
             <nav aria-label="Platform pages" className="flex flex-col items-center sm:items-start">
               <h4 className="text-sm font-semibold tracking-tight text-white mb-4 sm:mb-5">
                 Platform
@@ -177,7 +171,7 @@ export const Footer: React.FC = () => {
                     to="/clinics-growth"
                     onClick={() => window.scrollTo(0, 0)}
                     className={`block text-sm transition-colors ${
-                      isNavItemActive('industries') ? 'text-primary font-medium' : 'text-white/60 hover:text-white'
+                      location.pathname === '/clinics-growth' ? 'text-primary font-medium' : 'text-white/60 hover:text-white'
                     }`}
                   >
                     For Clinics

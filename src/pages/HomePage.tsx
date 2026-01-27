@@ -42,8 +42,8 @@ const AnimatedNumber = ({ end, suffix = '' }: { end: number, suffix?: string }) 
 };
 
 const HomePage: React.FC = () => {
-  // Fix: Updated 'industries' to 'solutions' in ScrollSpy
-  useScrollSpyObserver(['system', 'solutions', 'proof', 'faq', 'audit']);
+  // REMOVED 'industries' from ScrollSpy as it's now an external link
+  useScrollSpyObserver(['system', 'proof', 'faq', 'audit']);
   
   const location = useLocation() as any;
   const navigate = useNavigate();
@@ -64,10 +64,9 @@ const HomePage: React.FC = () => {
     scrollToHash();
   }, [location]);
 
-  // Fix: Updated 'industries' to 'solutions' in Refs
+  // REMOVED 'industries' from Refs
   const sectionRefs = {
     system: useRef<HTMLElement>(null),
-    solutions: useRef<HTMLElement>(null),
     proof: useRef<HTMLElement>(null),
     faq: useRef<HTMLElement>(null),
     audit: useRef<HTMLElement>(null),
@@ -123,7 +122,7 @@ const HomePage: React.FC = () => {
       <Header scrollToSection={scrollToSection} />
 
       <main className="min-h-screen bg-infrastructure">
-        {/* HERO SECTION - ELITE UPGRADE */}
+        {/* HERO SECTION */}
         <section className="relative pt-32 md:pt-40 pb-20 md:pb-28 overflow-hidden">
           <div className="absolute inset-0 bg-grid-pattern opacity-50" />
           <div className="absolute inset-0 signal-lines" />
@@ -229,7 +228,7 @@ const HomePage: React.FC = () => {
           </div>
         </section>
 
-        {/* PROBLEM SECTION - LEAK MAP */}
+        {/* PROBLEM SECTION */}
         <section className="pt-24 pb-24">
           <div className="container-width">
             <SectionHeading
@@ -297,7 +296,7 @@ const HomePage: React.FC = () => {
           </div>
         </section>
 
-        {/* PHILOSOPHY SECTION (HUMAN TOUCH) */}
+        {/* PHILOSOPHY SECTION */}
         <section className="pt-20 pb-20 border-y border-white/5 bg-white/[0.02]">
           <div className="container-width">
             <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -335,9 +334,8 @@ const HomePage: React.FC = () => {
           </div>
         </section>
 
-        {/* ENGAGEMENT MODELS (Target for Solutions Link) */}
-        {/* Fix: Added ref and id for 'solutions' here */}
-        <section ref={sectionRefs.solutions} id="solutions" className="pt-24 pb-24">
+        {/* ENGAGEMENT MODELS */}
+        <section className="pt-24 pb-24">
           <div className="container-width">
             <SectionHeading title="Engagement Models" subtitle="Built around your scale." />
             <div className="grid md:grid-cols-3 gap-6 mt-12">
@@ -434,7 +432,7 @@ const HomePage: React.FC = () => {
           </div>
         </section>
 
-        {/* MOBILE STICKY CTA (US Standard Accessibility) */}
+        {/* MOBILE STICKY CTA */}
         <motion.div 
           style={{ opacity: showMobileCta, y: useTransform(showMobileCta, [0, 1], [20, 0]) }}
           className="md:hidden fixed bottom-6 left-6 right-6 z-40"
