@@ -1,5 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { createPortal } from 'react-dom';
+import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import Logo from './Logo';
@@ -12,49 +11,36 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ scrollToSection }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
   const location = useLocation();
   const navigate = useNavigate();
   const { activeSection } = useScrollSpy();
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   const isNavItemActive = (sectionId: string) => {
     // On clinics page, Industries is always active
-    if (location.pathname === '/clinics-growth' && sectionId === 'industries') return true;
-
+    if (location.pathname === '/clinics-growth' && sectionId === 'industries') {
+      return true;
+    }
     // On homepage, use scroll spy
-    if (location.pathname === '/') return activeSection === sectionId;
-
+    if (location.pathname === '/') {
+      return activeSection === sectionId;
+    }
     return false;
   };
 
-  const navItems = useMemo(
-    () => [
-      { label: 'System', sectionId: 'system' },
-      { label: 'Industries', sectionId: 'industries' },
-      { label: 'Proof', sectionId: 'proof' },
-      { label: 'FAQs', sectionId: 'faq' },
-    ],
-    []
-  );
-
-  const goToSection = (sectionId: string) => {
-    // If we're already on homepage, scroll locally
-    if (location.pathname === '/' && scrollToSection) {
-      scrollToSection(sectionId);
-      return;
-    }
-
-    // Otherwise go home and ask HomePage to scroll after render
-    navigate('/', { state: { scrollTo: sectionId } });
-  };
+  const navItems = [
+    { label: 'System', sectionId: 'system' },
+    { label: 'Industries', sectionId: 'industries' },
+    { label: 'Proof', sectionId: 'proof' },
+    { label: 'FAQs', sectionId: 'faq' },
+  ];
 
   const handleNavClick = (sectionId: string) => {
-    goToSection(sectionId);
+    if (location.pathname === '/' && scrollToSection) {
+      scrollToSection(sectionId);
+    } else {
+      // From any other route (clinics/legal), go to homepage then scroll to the section
+      navigate('/', { state: { scrollTo: sectionId } });
+    }
     setIsMenuOpen(false);
   };
 
@@ -62,12 +48,13 @@ export const Header: React.FC<HeaderProps> = ({ scrollToSection }) => {
     if (location.pathname === '/' && scrollToSection) {
       scrollToSection('audit');
     } else {
+      // From any other route (clinics/legal), go to homepage then scroll to audit
       navigate('/', { state: { scrollTo: 'audit' } });
     }
     setIsMenuOpen(false);
   };
 
-  const headerUI = (
+  return (
     <header className="fixed top-0 left-0 right-0 z-50 header-glass">
       <div className="container-width">
         <div className="flex items-center justify-between h-16 md:h-20">
@@ -82,19 +69,39 @@ export const Header: React.FC<HeaderProps> = ({ scrollToSection }) => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
-            {navItems.map((item) => (
-              <button
-                key={item.label}
-                onClick={() => handleNavClick(item.sectionId)}
-                className={`nav-link text-sm font-medium transition-colors ${
-                  isNavItemActive(item.sectionId)
-                    ? 'text-primary active'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
+            {location.pathname === '/' ? (
+              navItems.map((item) => (
+                <button
+                  key={item.label}
+                  onClick={() => handleNavClick(item.sectionId)}
+                  className={`nav-link text-sm font-medium transition-colors ${
+                    isNavItemActive(item.sectionId)
+                      ? 'text-primary active'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))
+            ) : (
+              navItems.map((item) => (
+                <Link
+                  key={item.label}
+                  to={`/#${item.sectionId}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleNavClick(item.sectionId);
+                  }}
+                  className={`nav-link text-sm font-medium transition-colors ${
+                    isNavItemActive(item.sectionId)
+                      ? 'text-primary active'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              ))
+            )}
           </nav>
 
           {/* CTA Button */}
@@ -107,9 +114,7 @@ export const Header: React.FC<HeaderProps> = ({ scrollToSection }) => {
           {/* Mobile Menu Button */}
           <button
             className="md:hidden p-2 text-foreground"
-            onClick={() => setIsMenuOpen((v) => !v)}
-            aria-label="Toggle menu"
-            aria-expanded={isMenuOpen}
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -119,20 +124,39 @@ export const Header: React.FC<HeaderProps> = ({ scrollToSection }) => {
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t border-white/10">
             <nav className="flex flex-col gap-4">
-              {navItems.map((item) => (
-                <button
-                  key={item.label}
-                  onClick={() => handleNavClick(item.sectionId)}
-                  className={`text-left text-sm font-medium transition-colors py-2 ${
-                    isNavItemActive(item.sectionId)
-                      ? 'text-primary'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
-
+              {location.pathname === '/' ? (
+                navItems.map((item) => (
+                  <button
+                    key={item.label}
+                    onClick={() => handleNavClick(item.sectionId)}
+                    className={`text-left text-sm font-medium transition-colors py-2 ${
+                      isNavItemActive(item.sectionId)
+                        ? 'text-primary'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))
+              ) : (
+                navItems.map((item) => (
+                  <Link
+                    key={item.label}
+                    to={`/#${item.sectionId}`}
+                    className={`text-left text-sm font-medium transition-colors py-2 ${
+                      isNavItemActive(item.sectionId)
+                        ? 'text-primary'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleNavClick(item.sectionId);
+                    }}
+                  >
+                    {item.label}
+                  </Link>
+                ))
+              )}
               <Button onClick={handleAuditClick} className="btn-primary w-full mt-2">
                 Get a Free Audit
               </Button>
@@ -142,10 +166,6 @@ export const Header: React.FC<HeaderProps> = ({ scrollToSection }) => {
       </div>
     </header>
   );
-
-  // Keep fixed header stable even if parent uses transforms
-  if (!mounted) return null;
-  return createPortal(headerUI, document.body);
 };
 
 export default Header;
