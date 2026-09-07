@@ -131,11 +131,11 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <a
-                  href="tel:+8801733000786"
+                  href="tel:+8801911802030"
                   className="group flex items-center justify-center sm:justify-start gap-3 text-sm text-white/70 hover:text-white transition-colors"
                 >
                   <Phone className="w-4 h-4 flex-shrink-0 text-white/40 group-hover:text-primary transition-colors" />
-                  <span>+880 1733 000 786</span>
+                  <span>+8801911802030</span>
                 </a>
               </li>
               {/* Response Time Trust Signal */}

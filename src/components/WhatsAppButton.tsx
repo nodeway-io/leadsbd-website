@@ -7,7 +7,7 @@ interface WhatsAppButtonProps {
   message?: string;
 }
 
-const WHATSAPP_NUMBER = import.meta.env.VITE_WHATSAPP_NUMBER || '8801733000786';
+const WHATSAPP_NUMBER = import.meta.env.VITE_WHATSAPP_NUMBER || '8801911802030';
 const DEFAULT_MESSAGE = "Hi I'm contacting from the Leads.bd website. Please assist me with customer acquisition and growth.";
 
 export const WhatsAppButton: React.FC<WhatsAppButtonProps> = ({
